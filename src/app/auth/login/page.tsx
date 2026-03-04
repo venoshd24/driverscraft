@@ -59,7 +59,7 @@ export default function LoginPage() {
           drivers<span style={{ color: 'var(--accent)' }}>Craft</span>.
         </div>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>Welcome back. Log in to track your orders.</p>
-        <Suspense fallback={<div style={{ color: 'var(--text-muted)' }}>Loading…</div>}>
+        <Suspense fallback={<div style={{ color: 'var(--text-muted)', padding: '1rem 0' }}>Loading…</div>}>
           <LoginForm />
         </Suspense>
         <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>

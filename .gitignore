@@ -9,3 +9,4 @@ README.md
 supabase/schema.sql
 .env.local.example
 package-lock.json
+supabase/admin-migration.sql

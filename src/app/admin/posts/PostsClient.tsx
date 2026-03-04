@@ -1,0 +1,101 @@
+'use client'
+// src/app/admin/posts/PostsClient.tsx
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
+import { showToast } from '@/components/ui/Toast'
+
+export default function PostsClient({ posts: initial }: { posts: any[] }) {
+  const [posts, setPosts] = useState(initial)
+
+  async function togglePublished(id: string, current: boolean) {
+    const sb = createClient()
+    const { error } = await sb.from('posts').update({ published: !current }).eq('id', id)
+    if (error) { showToast('❌ Failed to update'); return }
+    setPosts(prev => prev.map(p => p.id === id ? { ...p, published: !current } : p))
+    showToast(`✅ Post ${!current ? 'published' : 'unpublished'}`)
+  }
+
+  async function toggleFeatured(id: string, current: boolean) {
+    const sb = createClient()
+    const { error } = await sb.from('posts').update({ featured: !current }).eq('id', id)
+    if (error) { showToast('❌ Failed to update'); return }
+    setPosts(prev => prev.map(p => p.id === id ? { ...p, featured: !current } : p))
+    showToast(`✅ ${!current ? 'Set as featured' : 'Removed from featured'}`)
+  }
+
+  async function deletePost(id: string, title: string) {
+    if (!confirm(`Delete "${title}"? This cannot be undone.`)) return
+    const sb = createClient()
+    const { error } = await sb.from('posts').delete().eq('id', id)
+    if (error) { showToast('❌ Failed to delete'); return }
+    setPosts(prev => prev.filter(p => p.id !== id))
+    showToast(`🗑 Article deleted`)
+  }
+
+  return (
+    <div style={{ background: '#121d17', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, overflow: 'hidden' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            {['Article', 'Tag', 'Author', 'Featured', 'Published', 'Date', 'Actions'].map(h => (
+              <th key={h} style={{ padding: '0.85rem 1.25rem', textAlign: 'left', fontSize: '0.68rem', fontFamily: 'DM Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(240,245,236,0.3)', fontWeight: 500 }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {posts.map(post => (
+            <tr key={post.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', opacity: post.published ? 1 : 0.55 }}>
+              <td style={{ padding: '1rem 1.25rem', maxWidth: 260 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{post.emoji}</span>
+                  <div style={{ color: '#f0f5ec', fontWeight: 600, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.title}</div>
+                </div>
+              </td>
+              <td style={{ padding: '1rem 1.25rem' }}>
+                <span style={{ background: 'rgba(14,102,64,0.2)', color: '#2d8a5e', padding: '2px 8px', borderRadius: 2, fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{post.tag}</span>
+              </td>
+              <td style={{ padding: '1rem 1.25rem', fontSize: '0.82rem', color: 'rgba(240,245,236,0.6)' }}>{post.author_name}</td>
+              <td style={{ padding: '1rem 1.25rem' }}>
+                <button onClick={() => toggleFeatured(post.id, post.featured)} style={{
+                  background: post.featured ? 'rgba(200,168,75,0.15)' : 'transparent',
+                  border: `1px solid ${post.featured ? 'rgba(200,168,75,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                  borderRadius: 4, padding: '3px 10px', cursor: 'pointer',
+                  color: post.featured ? '#c8a84b' : 'rgba(240,245,236,0.3)',
+                  fontSize: '0.72rem', fontWeight: 700, fontFamily: 'DM Sans, sans-serif',
+                }}>{post.featured ? '⭐ Featured' : 'Set featured'}</button>
+              </td>
+              <td style={{ padding: '1rem 1.25rem' }}>
+                <button onClick={() => togglePublished(post.id, post.published)} style={{
+                  background: post.published ? 'rgba(14,102,64,0.2)' : 'rgba(255,255,255,0.06)',
+                  border: `1px solid ${post.published ? 'rgba(14,102,64,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                  borderRadius: 4, padding: '3px 10px', cursor: 'pointer',
+                  color: post.published ? '#2d8a5e' : 'rgba(240,245,236,0.4)',
+                  fontSize: '0.72rem', fontWeight: 700, fontFamily: 'DM Sans, sans-serif',
+                }}>{post.published ? 'Live' : 'Draft'}</button>
+              </td>
+              <td style={{ padding: '1rem 1.25rem', fontSize: '0.78rem', color: 'rgba(240,245,236,0.4)' }}>
+                {new Date(post.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </td>
+              <td style={{ padding: '1rem 1.25rem' }}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <Link href={`/blog/${post.slug}`} target="_blank" style={{ textDecoration: 'none' }}>
+                    <button style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '0.35rem 0.6rem', color: 'rgba(240,245,236,0.5)', fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>👁</button>
+                  </Link>
+                  <Link href={`/admin/posts/edit/${post.id}`} style={{ textDecoration: 'none' }}>
+                    <button style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '0.35rem 0.75rem', color: '#f0f5ec', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Edit</button>
+                  </Link>
+                  <button onClick={() => deletePost(post.id, post.title)} style={{ background: 'rgba(192,57,43,0.1)', border: '1px solid rgba(192,57,43,0.2)', borderRadius: 4, padding: '0.35rem 0.75rem', color: '#e74c3c', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>Delete</button>
+                </div>
+              </td>
+            </tr>
+          ))}
+          {posts.length === 0 && (
+            <tr><td colSpan={7} style={{ padding: '2.5rem', textAlign: 'center', color: 'rgba(240,245,236,0.3)', fontSize: '0.85rem' }}>No articles yet</td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
+}
