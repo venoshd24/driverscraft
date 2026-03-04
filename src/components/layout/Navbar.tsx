@@ -13,6 +13,13 @@ export default function Navbar() {
   const router = useRouter()
   const { count } = useCart()
   const [user, setUser] = useState<User | null>(null)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    function onScroll() { setScrolled(window.scrollY > 20) }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
   const [cartOpen, setCartOpen] = useState(false)
 
   useEffect(() => {
@@ -43,10 +50,13 @@ export default function Navbar() {
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-      background: 'var(--green-deep)',
-      borderBottom: '1px solid rgba(255,255,255,0.08)',
+      background: scrolled ? 'rgba(26,74,53,0.97)' : 'var(--green-deep)',
+      borderBottom: scrolled ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(255,255,255,0.08)',
+      backdropFilter: scrolled ? 'blur(16px)' : 'none',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '0 2.5rem', height: 'var(--nav-height)',
+      transition: 'background 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease',
+      boxShadow: scrolled ? '0 4px 30px rgba(13,31,23,0.25)' : 'none',
     }}>
       {/* Logo */}
       <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
@@ -65,19 +75,21 @@ export default function Navbar() {
           { href: '/', label: 'Home' },
           { href: '/shop', label: 'Shop' },
           { href: '/blog', label: 'Stories' },
-        ].map(({ href, label }) => (
-          <li key={href}>
-            <Link href={href} style={{
-              color: isActive(href) && href !== '/' || (href === '/' && pathname === '/')
-                ? 'var(--cream)' : 'rgba(240,245,236,0.65)',
-              textDecoration: 'none', fontSize: '0.82rem',
-              fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase',
-              transition: 'color 0.2s',
-            }}>
-              {label}
-            </Link>
-          </li>
-        ))}
+        ].map(({ href, label }) => {
+          const active = href === '/' ? pathname === '/' : isActive(href)
+          return (
+            <li key={href}>
+              <Link href={href} className={`nav-link-animated${active ? ' active' : ''}`} style={{
+                color: active ? 'var(--cream)' : 'rgba(240,245,236,0.65)',
+                textDecoration: 'none', fontSize: '0.82rem',
+                fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase',
+                transition: 'color 0.2s ease',
+              }}>
+                {label}
+              </Link>
+            </li>
+          )
+        })}
         {user && (
           <li>
             <Link href="/account" style={{

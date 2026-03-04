@@ -5,6 +5,8 @@ import { CartProvider } from '@/lib/cart-context'
 import Navbar from '@/components/layout/Navbar'
 import CartDrawer from '@/components/layout/CartDrawer'
 import Toast from '@/components/ui/Toast'
+import PageTransition from '@/components/ui/PageTransition'
+import RouteProgressBar from '@/components/ui/RouteProgressBar'
 
 export const metadata: Metadata = {
   title: 'driversCraft — Gear. Stories. Community.',
@@ -21,9 +23,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <CartProvider>
+          <RouteProgressBar />
           <Navbar />
           <main style={{ paddingTop: 'var(--nav-height)' }}>
-            {children}
+            <PageTransition>
+              {children}
+            </PageTransition>
           </main>
           <CartDrawer />
           <Toast />

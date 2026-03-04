@@ -5,6 +5,7 @@ import ProductCard from '@/components/ui/ProductCard'
 import BlogCard from '@/components/ui/BlogCard'
 import NewsletterStrip from '@/components/ui/NewsletterStrip'
 import Footer from '@/components/layout/Footer'
+import ScrollReveal from '@/components/ui/ScrollReveal'
 
 export default async function HomePage() {
   const supabase = createClient()
@@ -102,7 +103,11 @@ export default async function HomePage() {
           <Link href="/shop" className="btn btn-green">View All →</Link>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(250px,1fr))', gap: 24 }}>
-          {(products || []).map(p => <ProductCard key={p.id} product={p} />)}
+          {(products || []).map((p, i) => (
+            <ScrollReveal key={p.id} delay={i * 80} direction="up">
+              <ProductCard product={p} />
+            </ScrollReveal>
+          ))}
         </div>
       </section>
 
@@ -117,7 +122,11 @@ export default async function HomePage() {
           <Link href="/blog" className="btn btn-dark">All Stories →</Link>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 24 }}>
-          {(posts || []).map((post, i) => <BlogCard key={post.id} post={post} featured={i === 0} />)}
+          {(posts || []).map((post, i) => (
+            <ScrollReveal key={post.id} delay={i * 100} direction="up">
+              <BlogCard post={post} featured={i === 0} />
+            </ScrollReveal>
+          ))}
         </div>
       </section>
 

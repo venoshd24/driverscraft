@@ -15,6 +15,8 @@
   --accent: #c8a84b;
   --red: #c0392b;
   --nav-height: 64px;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,21 +36,60 @@ body {
 .font-serif { font-family: 'Playfair Display', serif; }
 .font-mono  { font-family: 'DM Mono', monospace; }
 
-/* ── Buttons ── */
+/* ══════════════════════════════════════
+   PAGE TRANSITIONS
+══════════════════════════════════════ */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+.page-transition {
+  animation: pageEnter 0.5s var(--ease-out-expo) both;
+  will-change: opacity, transform;
+}
+
+/* ══════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════ */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   padding: 0.55rem 1.3rem; border-radius: 4px;
   font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
   font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
-  cursor: pointer; transition: all 0.2s; border: none; text-decoration: none;
-  white-space: nowrap;
+  cursor: pointer; border: none; text-decoration: none;
+  white-space: nowrap; position: relative; overflow: hidden;
+  transition: color 0.2s ease, background 0.2s ease,
+              transform 0.18s var(--ease-out-expo),
+              box-shadow 0.2s ease;
 }
+
+/* Ripple shimmer on all buttons */
+.btn::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%);
+  transform: translateX(-100%);
+  transition: transform 0.45s ease;
+}
+.btn:hover::after { transform: translateX(100%); }
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0) scale(0.98); }
+
 .btn-primary  { background: var(--accent); color: var(--green-deep); }
-.btn-primary:hover { background: #d4b45c; }
+.btn-primary:hover { background: #d4b45c; box-shadow: 0 6px 20px rgba(200,168,75,0.35); }
 .btn-green   { background: var(--green-brand); color: var(--cream); }
-.btn-green:hover { background: var(--green-light); }
+.btn-green:hover { background: var(--green-light); box-shadow: 0 6px 20px rgba(14,102,64,0.3); }
 .btn-dark    { background: var(--green-deep); color: var(--cream); }
-.btn-dark:hover { background: var(--green-mid); }
+.btn-dark:hover { background: var(--green-mid); box-shadow: 0 6px 20px rgba(26,74,53,0.3); }
 .btn-outline { background: transparent; border: 1.5px solid currentColor; color: inherit; }
 .btn-outline:hover { background: rgba(0,0,0,0.05); }
 .btn-outline-light { background: transparent; border: 1px solid rgba(240,245,236,0.35); color: var(--cream); }
@@ -56,9 +97,32 @@ body {
 .btn-lg { padding: 0.8rem 2rem; font-size: 0.9rem; }
 .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.72rem; }
 .btn-full { width: 100%; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn:disabled::after { display: none; }
 
-/* ── Section ── */
+/* ══════════════════════════════════════
+   NAV LINK UNDERLINE ANIMATION
+══════════════════════════════════════ */
+.nav-link-animated {
+  position: relative;
+}
+.nav-link-animated::after {
+  content: '';
+  position: absolute; bottom: -3px; left: 0; right: 0;
+  height: 1px; background: var(--cream);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s var(--ease-in-out-quart);
+}
+.nav-link-animated:hover::after,
+.nav-link-animated.active::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* ══════════════════════════════════════
+   SECTION
+══════════════════════════════════════ */
 .section { padding: 5rem 5rem; }
 @media (max-width: 1024px) { .section { padding: 4rem 2rem; } }
 @media (max-width: 640px)  { .section { padding: 3rem 1.25rem; } }
@@ -87,18 +151,34 @@ body {
   margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;
 }
 
-/* ── Cards ── */
+/* ══════════════════════════════════════
+   CARDS
+══════════════════════════════════════ */
 .card {
   background: var(--white); border-radius: 8px;
   border: 1px solid var(--cream-dark);
-  transition: transform 0.25s, box-shadow 0.25s;
+  transition:
+    transform 0.3s var(--ease-out-expo),
+    box-shadow 0.3s ease,
+    border-color 0.2s ease;
 }
 .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 18px 45px rgba(14,102,64,0.11);
+  transform: translateY(-6px);
+  box-shadow: 0 24px 50px rgba(14,102,64,0.12);
+  border-color: rgba(14,102,64,0.15);
 }
 
-/* ── Forms ── */
+/* Image zoom on card hover */
+.card .card-img-inner {
+  transition: transform 0.5s var(--ease-out-expo);
+}
+.card:hover .card-img-inner {
+  transform: scale(1.04);
+}
+
+/* ══════════════════════════════════════
+   FORMS
+══════════════════════════════════════ */
 .form-group { margin-bottom: 1.1rem; }
 .form-label {
   display: block; font-size: 0.75rem; font-weight: 600;
@@ -109,24 +189,37 @@ body {
   width: 100%; padding: 0.75rem 1rem; border-radius: 5px;
   border: 1.5px solid var(--cream-dark); background: var(--cream);
   font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
-  color: var(--text-dark); outline: none; transition: border-color 0.2s;
+  color: var(--text-dark); outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
-.form-input:focus { border-color: var(--green-brand); background: var(--white); }
+.form-input:focus {
+  border-color: var(--green-brand);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(14,102,64,0.08);
+}
 .form-error { color: var(--red); font-size: 0.76rem; margin-top: 0.3rem; }
 
-/* ── Toast ── */
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
 .toast {
   position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 9999;
   background: var(--green-deep); color: var(--cream);
   padding: 0.85rem 1.35rem; border-radius: 6px;
   font-size: 0.88rem; font-weight: 500;
   box-shadow: 0 8px 30px rgba(14,102,64,0.35);
-  animation: toastIn 0.3s ease;
+  animation: toastIn 0.4s var(--ease-out-expo) both;
   pointer-events: none;
+  border-left: 3px solid var(--accent);
 }
-@keyframes toastIn { from { transform: translateY(16px); opacity: 0; } to { opacity: 1; transform: none; } }
+@keyframes toastIn {
+  from { transform: translateX(20px) translateY(4px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
 
-/* ── Badge ── */
+/* ══════════════════════════════════════
+   BADGE
+══════════════════════════════════════ */
 .badge {
   display: inline-block; padding: 3px 10px; border-radius: 2px;
   font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
@@ -139,12 +232,86 @@ body {
 .badge-status-pending { background: rgba(0,0,0,0.07); color: var(--text-muted); }
 .badge-status-cancelled { background: rgba(192,57,43,0.1); color: var(--red); }
 
-/* ── Animations ── */
+/* ══════════════════════════════════════
+   LINK HOVER — subtle underline grow
+══════════════════════════════════════ */
+.animated-link {
+  position: relative; text-decoration: none;
+}
+.animated-link::after {
+  content: '';
+  position: absolute; bottom: -1px; left: 0;
+  width: 100%; height: 1px;
+  background: currentColor; opacity: 0.4;
+  transform: scaleX(0); transform-origin: right;
+  transition: transform 0.3s var(--ease-in-out-quart);
+}
+.animated-link:hover::after {
+  transform: scaleX(1); transform-origin: left;
+}
+
+/* ══════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════ */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: none; }
 }
-.animate-fade-up { animation: fadeUp 0.55s ease both; }
-.delay-1 { animation-delay: 0.1s; }
-.delay-2 { animation-delay: 0.2s; }
-.delay-3 { animation-delay: 0.3s; }
+.animate-fade-up { animation: fadeUp 0.6s var(--ease-out-expo) both; }
+.delay-1 { animation-delay: 0.08s; }
+.delay-2 { animation-delay: 0.16s; }
+.delay-3 { animation-delay: 0.24s; }
+.delay-4 { animation-delay: 0.32s; }
+
+/* ══════════════════════════════════════
+   HERO CARD HOVER
+══════════════════════════════════════ */
+.hero-feature-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; padding: 1.5rem;
+  transition:
+    transform 0.35s var(--ease-out-expo),
+    background 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.3s ease;
+  cursor: default;
+}
+.hero-feature-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(200,168,75,0.3);
+  box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+}
+
+/* ══════════════════════════════════════
+   BLOG/PRODUCT CARD IMAGE CLIP
+══════════════════════════════════════ */
+.card-img-wrap {
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+}
+
+/* ══════════════════════════════════════
+   SKELETON LOADER (for suspense states)
+══════════════════════════════════════ */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--cream-dark) 25%, var(--cream) 50%, var(--cream-dark) 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 4px;
+}
+
+/* ══════════════════════════════════════
+   SMOOTH IMAGE LOAD
+══════════════════════════════════════ */
+img {
+  transition: opacity 0.4s ease;
+}
+img[data-loaded="false"] { opacity: 0; }
+img[data-loaded="true"]  { opacity: 1; }
+
