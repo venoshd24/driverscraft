@@ -3,14 +3,13 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useCart } from '@/lib/cart-context'
 import type { User } from '@supabase/supabase-js'
 
 export default function Navbar() {
   const pathname = usePathname()
-  const router = useRouter()
   const { count } = useCart()
   const [user, setUser] = useState<User | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -46,11 +45,13 @@ export default function Navbar() {
   }, [])
 
   async function handleLogout() {
-    const sb = createClient()
-    await sb.auth.signOut()
+    try {
+      const sb = createClient()
+      await sb.auth.signOut()
+    } catch (_) {}
+    setUser(null)
     setIsAdmin(false)
-    router.push('/')
-    router.refresh()
+    window.location.href = '/'
   }
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
