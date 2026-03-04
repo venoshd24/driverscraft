@@ -1,0 +1,11 @@
+.env.local
+.env
+node_modules/
+.next/
+out/
+.DS_Store
+*.log
+README.md
+supabase/schema.sql
+.env.local.example
+package-lock.json
