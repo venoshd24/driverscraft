@@ -13,6 +13,7 @@ export default function Navbar() {
   const router = useRouter()
   const { count } = useCart()
   const [user, setUser] = useState<User | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -20,27 +21,34 @@ export default function Navbar() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
-  const [cartOpen, setCartOpen] = useState(false)
 
   useEffect(() => {
     const sb = createClient()
-    sb.auth.getUser().then(({ data }) => setUser(data.user))
-    const { data: { subscription } } = sb.auth.onAuthStateChange((_, session) => {
+    sb.auth.getUser().then(async ({ data }) => {
+      setUser(data.user)
+      if (data.user) {
+        const { data: profile } = await sb
+          .from('profiles').select('is_admin').eq('id', data.user.id).single()
+        setIsAdmin(profile?.is_admin ?? false)
+      }
+    })
+    const { data: { subscription } } = sb.auth.onAuthStateChange(async (_, session) => {
       setUser(session?.user ?? null)
+      if (session?.user) {
+        const { data: profile } = await sb
+          .from('profiles').select('is_admin').eq('id', session.user.id).single()
+        setIsAdmin(profile?.is_admin ?? false)
+      } else {
+        setIsAdmin(false)
+      }
     })
     return () => subscription.unsubscribe()
-  }, [])
-
-  // Expose cart toggle globally so CartDrawer button works
-  useEffect(() => {
-    ;(window as any).__openCart = () => {
-      document.getElementById('cart-drawer')?.classList.toggle('open')
-    }
   }, [])
 
   async function handleLogout() {
     const sb = createClient()
     await sb.auth.signOut()
+    setIsAdmin(false)
     router.push('/')
     router.refresh()
   }
@@ -90,14 +98,29 @@ export default function Navbar() {
             </li>
           )
         })}
+
         {user && (
           <li>
-            <Link href="/account" style={{
+            <Link href="/account" className={`nav-link-animated${isActive('/account') ? ' active' : ''}`} style={{
               color: isActive('/account') ? 'var(--cream)' : 'rgba(240,245,236,0.65)',
               textDecoration: 'none', fontSize: '0.82rem',
               fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase',
+              transition: 'color 0.2s ease',
             }}>
               Account
+            </Link>
+          </li>
+        )}
+
+        {isAdmin && (
+          <li>
+            <Link href="/admin" className={`nav-link-animated${isActive('/admin') ? ' active' : ''}`} style={{
+              color: isActive('/admin') ? 'var(--accent)' : 'rgba(200,168,75,0.75)',
+              textDecoration: 'none', fontSize: '0.82rem',
+              fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase',
+              transition: 'color 0.2s ease',
+            }}>
+              ⚙ Admin
             </Link>
           </li>
         )}
