@@ -131,7 +131,8 @@ export default function Navbar() {
               href="/auth/logout"
               className="btn btn-outline-light btn-sm"
               style={{ textDecoration: 'none' }}
-            >
+              onClick={() => localStorage.removeItem('dc_cart')}
+>
               Log Out
             </a>
           </>
