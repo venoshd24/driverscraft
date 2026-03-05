@@ -31,9 +31,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Auth listener
   useEffect(() => {
     const sb = createClient()
-    sb.auth.getUser().then(({ data }) => {
-      setUserId(data.user?.id ?? null)
-    })
+    sb.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null))
     const { data: { subscription } } = sb.auth.onAuthStateChange((_, session) => {
       setUserId(session?.user?.id ?? null)
     })
@@ -47,9 +45,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const sb = createClient()
         const { data } = await sb
           .from('carts').select('items').eq('user_id', userId).single()
-
         const local = getLocalCart()
-
         if (data?.items?.length) {
           const merged = mergeCarts(data.items, local)
           setItems(merged)
@@ -71,34 +67,55 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Persist on change
   useEffect(() => {
     if (!loaded) return
-    if (userId) {
-      saveSupabaseCart(userId, items)
-    } else {
-      saveLocalCart(items)
-    }
+    if (userId) saveSupabaseCart(userId, items)
+    else saveLocalCart(items)
   }, [items, userId, loaded])
 
-  // Stock check — marks sold-out items
+  // Stock check:
+  // - Products that no longer exist (deleted) → removed from cart silently
+  // - Products with stock === 0 → marked soldOut
+  // Returns { hadSoldOut, deletedNames }
   const checkStock = useCallback(async () => {
-    if (!items.length) return false
+    if (!items.length) return { hadSoldOut: false, deletedNames: [] }
     const sb = createClient()
     const ids = items.map(i => i.id)
-    const { data: products } = await sb
-      .from('products').select('id, stock, name').in('id', ids)
-    if (!products) return false
 
-    const stockMap = Object.fromEntries(products.map(p => [p.id, p.stock]))
+    const { data: products } = await sb
+      .from('products').select('id, stock, name, active').in('id', ids)
+
+    // Products not returned = deleted from DB entirely
+    const returnedIds = new Set((products || []).map((p: any) => p.id))
+    const deletedItems = items.filter(i => !returnedIds.has(i.id))
+    const deletedNames = deletedItems.map(i => i.name)
+
+    // Remove deleted items silently
+    if (deletedItems.length) {
+      setItems(prev => {
+        const filtered = prev.filter(i => returnedIds.has(i.id))
+        if (userId) saveSupabaseCart(userId, filtered)
+        else saveLocalCart(filtered)
+        return filtered
+      })
+    }
+
+    // Mark sold-out (stock === 0 or active === false)
+    const stockMap = Object.fromEntries(
+      (products || []).map((p: any) => [p.id, { stock: p.stock, active: p.active }])
+    )
     let hadSoldOut = false
 
-    setItems(prev => prev.map(item => {
-      const stock = stockMap[item.id] ?? item.stock
-      const soldOut = stock === 0
-      if (soldOut) hadSoldOut = true
-      return { ...item, soldOut, stock }
-    }))
+    setItems(prev => prev
+      .filter(i => returnedIds.has(i.id)) // double-ensure deleted are gone
+      .map(item => {
+        const info = stockMap[item.id]
+        const soldOut = !info || info.stock === 0 || !info.active
+        if (soldOut) hadSoldOut = true
+        return { ...item, soldOut, stock: info?.stock ?? 0 }
+      })
+    )
 
-    return hadSoldOut
-  }, [items])
+    return { hadSoldOut, deletedNames }
+  }, [items, userId])
 
   function addItem(product: Product) {
     setItems(prev => {
@@ -113,10 +130,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }
 
   function changeQty(id: string, delta: number) {
-    setItems(prev => {
-      const updated = prev.map(i => i.id === id ? { ...i, qty: i.qty + delta } : i)
-      return updated.filter(i => i.qty > 0)
-    })
+    setItems(prev =>
+      prev.map(i => i.id === id ? { ...i, qty: i.qty + delta } : i).filter(i => i.qty > 0)
+    )
   }
 
   function clearCart() {
@@ -165,11 +181,8 @@ function mergeCarts(cloud: CartItemWithStock[], local: CartItemWithStock[]): Car
   const merged = [...cloud]
   for (const localItem of local) {
     const existing = merged.find(i => i.id === localItem.id)
-    if (existing) {
-      existing.qty += localItem.qty
-    } else {
-      merged.push(localItem)
-    }
+    if (existing) existing.qty += localItem.qty
+    else merged.push(localItem)
   }
   return merged
 }

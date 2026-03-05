@@ -6,39 +6,45 @@ export async function POST(request: NextRequest) {
     const { email, items, firstName } = await request.json()
     if (!email || !items?.length) return NextResponse.json({ ok: true })
 
-    // Only send if SMTP env vars are configured
     const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env
+
     if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
-      console.log('SMTP not configured — skipping sold-out email to', email)
-      return NextResponse.json({ ok: true })
+      console.warn('[notify-soldout] SMTP not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS in env vars.')
+      return NextResponse.json({ ok: true, skipped: 'no smtp config' })
     }
 
-    const nodemailer = await import('nodemailer')
-    const transporter = nodemailer.default.createTransport({
+    // Dynamic import to avoid bundling issues
+    const nodemailer = (await import('nodemailer')).default
+
+    const transporter = nodemailer.createTransport({
       host: SMTP_HOST,
-      port: parseInt(SMTP_PORT || '587'),
-      secure: SMTP_PORT === '465',
+      port: Number(SMTP_PORT || 587),
+      secure: Number(SMTP_PORT) === 465,
       auth: { user: SMTP_USER, pass: SMTP_PASS },
+      tls: { rejectUnauthorized: false }, // needed for some SMTP hosts
     })
+
+    // Verify connection before sending
+    await transporter.verify()
 
     const name = firstName || 'there'
     const itemsHtml = items
       .map((n: string) => `<p style="color:#c0392b;margin:0.3rem 0;font-weight:600;">✕ ${n}</p>`)
       .join('')
 
-    await transporter.sendMail({
-      from: SMTP_FROM || SMTP_USER,
+    const info = await transporter.sendMail({
+      from: SMTP_FROM || `driversCraft <${SMTP_USER}>`,
       to: email,
       subject: '⚠️ Item in your driversCraft cart is sold out',
       html: `
-        <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:2rem;background:#f0f5ec;">
+        <div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#f0f5ec;padding:2rem;">
           <div style="background:#1a4a35;padding:1.5rem 2rem;border-radius:8px 8px 0 0;">
             <h1 style="color:#f0f5ec;font-family:Georgia,serif;margin:0;font-size:1.5rem;">
               drivers<span style="color:#c8a84b;">Craft</span>.
             </h1>
           </div>
           <div style="background:#fff;padding:2rem;border-radius:0 0 8px 8px;border:1px solid #e2ead9;">
-            <p style="color:#2a4035;">Hey ${name},</p>
+            <p style="color:#2a4035;font-size:1rem;">Hey ${name},</p>
             <p style="color:#2a4035;line-height:1.7;">
               Unfortunately the following item(s) in your cart have sold out:
             </p>
@@ -55,14 +61,20 @@ export async function POST(request: NextRequest) {
                       font-weight:600;font-size:0.9rem;">
               Browse Other Gear →
             </a>
+            <p style="color:#5a7a6a;font-size:0.78rem;margin-top:2rem;border-top:1px solid #e2ead9;padding-top:1rem;">
+              You're receiving this because you have a driversCraft account.
+            </p>
           </div>
         </div>
       `,
     })
 
-    return NextResponse.json({ ok: true })
-  } catch (err) {
-    console.error('notify-soldout error:', err)
-    return NextResponse.json({ ok: true }) // non-critical, never fail
+    console.log('[notify-soldout] Email sent:', info.messageId)
+    return NextResponse.json({ ok: true, messageId: info.messageId })
+
+  } catch (err: any) {
+    // Log the actual error so you can debug from Vercel logs
+    console.error('[notify-soldout] Error:', err?.message || err)
+    return NextResponse.json({ ok: true, error: err?.message }) // always 200 — non-critical
   }
 }

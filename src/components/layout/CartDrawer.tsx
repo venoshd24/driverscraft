@@ -24,24 +24,37 @@ export default function CartDrawer() {
       if (opened && !isOpen) {
         setIsOpen(true)
         setCheckingStock(true)
-        const hadSoldOut = await checkStock()
+        const result = await checkStock()
         setCheckingStock(false)
 
+        const { hadSoldOut, deletedNames } = result || {}
+
+        // Notify about deleted products
+        if (deletedNames?.length) {
+          showToast(`🗑 ${deletedNames.length} item(s) removed — no longer available`)
+        }
+
+        // Notify about sold-out products and send email
         if (hadSoldOut) {
           showToast('⚠️ Some items in your cart are now sold out')
-          // Notify via email API
           const sb = createClient()
           const { data: { user } } = await sb.auth.getUser()
           if (user) {
-            const soldOutItems = items.filter(i => i.soldOut)
-            await fetch('/api/notify-soldout', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: user.email,
-                items: soldOutItems.map(i => i.name),
-              }),
-            })
+            // Get sold-out items after state update settles
+            setTimeout(async () => {
+              const soldOutItems = items.filter(i => i.soldOut)
+              if (soldOutItems.length) {
+                await fetch('/api/notify-soldout', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    email: user.email,
+                    firstName: user.user_metadata?.first_name || '',
+                    items: soldOutItems.map(i => i.name),
+                  }),
+                })
+              }
+            }, 500)
           }
         }
       } else if (!opened) {
