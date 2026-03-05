@@ -43,7 +43,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.85rem', lineHeight: 1.5 }}>{product.description}</div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div className="font-mono" style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--green-brand)' }}>
-            ${(product.price / 100).toFixed(2)}
+            RM{(product.price / 100).toFixed(2)}
           </div>
           <button
             className="btn btn-dark btn-sm"
