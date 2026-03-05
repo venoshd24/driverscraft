@@ -23,36 +23,29 @@ export default function Navbar() {
 
   useEffect(() => {
     const sb = createClient()
-    sb.auth.getUser().then(async ({ data }) => {
+
+    async function loadUser(uid: string) {
+      const { data: profile } = await sb
+        .from('profiles').select('is_admin').eq('id', uid).single()
+      setIsAdmin(profile?.is_admin ?? false)
+    }
+
+    sb.auth.getUser().then(({ data }) => {
       setUser(data.user)
-      if (data.user) {
-        const { data: profile } = await sb
-          .from('profiles').select('is_admin').eq('id', data.user.id).single()
-        setIsAdmin(profile?.is_admin ?? false)
-      }
+      if (data.user) loadUser(data.user.id)
     })
-    const { data: { subscription } } = sb.auth.onAuthStateChange(async (_, session) => {
+
+    const { data: { subscription } } = sb.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
-        const { data: profile } = await sb
-          .from('profiles').select('is_admin').eq('id', session.user.id).single()
-        setIsAdmin(profile?.is_admin ?? false)
+        loadUser(session.user.id)
       } else {
         setIsAdmin(false)
       }
     })
+
     return () => subscription.unsubscribe()
   }, [])
-
-  async function handleLogout() {
-    try {
-      const sb = createClient()
-      await sb.auth.signOut()
-    } catch (_) {}
-    setUser(null)
-    setIsAdmin(false)
-    window.location.href = '/'
-  }
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
@@ -134,9 +127,13 @@ export default function Navbar() {
             <span style={{ color: 'rgba(240,245,236,0.7)', fontSize: '0.85rem' }}>
               {user.user_metadata?.first_name || user.email?.split('@')[0]}
             </span>
-            <button className="btn btn-outline-light btn-sm" onClick={handleLogout}>
+            <a
+              href="/auth/logout"
+              className="btn btn-outline-light btn-sm"
+              style={{ textDecoration: 'none' }}
+            >
               Log Out
-            </button>
+            </a>
           </>
         ) : (
           <>
