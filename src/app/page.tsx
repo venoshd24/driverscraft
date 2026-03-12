@@ -18,13 +18,15 @@ export default async function HomePage() {
   return (
     <>
       {/* ── HERO ── */}
-      <section style={{
+      <section className="hero-section" style={{
         background: 'var(--green-deep)',
         minHeight: 'calc(100vh - var(--nav-height))',
-        display: 'grid', gridTemplateColumns: '1fr 1fr',
-        position: 'relative', overflow: 'hidden',
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        position: 'relative',
+        overflow: 'hidden',
       }}>
-        {/* BG text */}
+        {/* BG watermark */}
         <div style={{
           position: 'absolute', bottom: '-2rem', left: '-1rem',
           fontFamily: 'Playfair Display, serif', fontSize: '14rem', fontWeight: 900,
@@ -33,7 +35,7 @@ export default async function HomePage() {
         }}>DC.</div>
 
         {/* Left */}
-        <div className="animate-fade-up" style={{
+        <div className="animate-fade-up hero-left" style={{
           display: 'flex', flexDirection: 'column', justifyContent: 'center',
           padding: '5rem 3rem 5rem 5rem', position: 'relative', zIndex: 2,
         }}>
@@ -60,7 +62,8 @@ export default async function HomePage() {
             color: 'rgba(240,245,236,0.65)', fontSize: '1.05rem', lineHeight: 1.7,
             maxWidth: 440, marginBottom: '2.5rem', fontWeight: 300,
           }}>
-            Premium motorsport-inspired gear, honest race analysis, and a community that bleeds petrol. This is driversCraft.
+            Premium motorsport-inspired gear, honest race analysis,
+            and a community that bleeds petrol. This is driversCraft.
           </p>
 
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
@@ -70,8 +73,14 @@ export default async function HomePage() {
         </div>
 
         {/* Right — Cards */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 3rem', position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, transform: 'rotate(-3deg)', maxWidth: 360 }}>
+        <div className="hero-cards-panel" style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '4rem 3rem', position: 'relative', zIndex: 2,
+        }}>
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16,
+            transform: 'rotate(-3deg)', maxWidth: 360,
+          }}>
             {[
               { emoji: '🧢', label: 'New Drop', title: 'Grid Cap Collection' },
               { emoji: '📝', label: 'Latest Story', title: "Monaco's Hidden Sector" },
@@ -81,10 +90,13 @@ export default async function HomePage() {
               <div key={i} style={{
                 background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: 8, padding: '1.5rem',
-                marginTop: i === 1 || i === 3 ? (i === 1 ? 24 : -24) : 0,
+                marginTop: i === 1 ? 24 : i === 3 ? -24 : 0,
               }}>
                 <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>{card.emoji}</div>
-                <div className="font-mono" style={{ fontSize: '0.62rem', color: 'var(--accent)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.3rem' }}>{card.label}</div>
+                <div className="font-mono" style={{
+                  fontSize: '0.62rem', color: 'var(--accent)', letterSpacing: '0.12em',
+                  textTransform: 'uppercase', marginBottom: '0.3rem',
+                }}>{card.label}</div>
                 <div style={{ color: 'var(--cream)', fontWeight: 600, fontSize: '0.88rem' }}>{card.title}</div>
               </div>
             ))}
@@ -102,7 +114,7 @@ export default async function HomePage() {
           </div>
           <Link href="/shop" className="btn btn-green">View All →</Link>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(250px,1fr))', gap: 24 }}>
+        <div className="products-grid">
           {(products || []).map((p, i) => (
             <ScrollReveal key={p.id} delay={i * 80} direction="up">
               <ProductCard product={p} />
@@ -121,7 +133,7 @@ export default async function HomePage() {
           </div>
           <Link href="/blog" className="btn btn-dark">All Stories →</Link>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 24 }}>
+        <div className="blog-grid">
           {(posts || []).map((post, i) => (
             <ScrollReveal key={post.id} delay={i * 100} direction="up">
               <BlogCard post={post} featured={i === 0} />
@@ -132,6 +144,88 @@ export default async function HomePage() {
 
       <NewsletterStrip />
       <Footer />
+
+      <style>{`
+        /* ── HERO MOBILE ── */
+        @media (max-width: 768px) {
+          .hero-section {
+            grid-template-columns: 1fr !important;
+            min-height: auto !important;
+            padding-bottom: 3rem;
+          }
+          .hero-left {
+            padding: 3rem 1.5rem 2rem !important;
+          }
+          .hero-cards-panel {
+            padding: 0 1.5rem 2rem !important;
+          }
+          .hero-cards-panel > div {
+            transform: none !important;
+            max-width: 100% !important;
+            width: 100%;
+          }
+        }
+
+        /* ── MERCH GRID MOBILE ── */
+        .products-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          gap: 24px;
+        }
+        @media (max-width: 640px) {
+          .products-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+          }
+        }
+        @media (max-width: 400px) {
+          .products-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        /* ── BLOG GRID MOBILE ── */
+        .blog-card-featured {
+          grid-row: span 2;
+        }
+        .blog-grid {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr;
+          gap: 24px;
+        }
+        @media (max-width: 900px) {
+          .blog-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+          /* first post full width on tablet */
+          .blog-grid > *:first-child {
+            grid-column: 1 / -1;
+          }
+        }
+        @media (max-width: 560px) {
+          .blog-grid {
+            grid-template-columns: 1fr;
+          }
+          .blog-grid > *:first-child {
+            grid-column: auto;
+          }
+          .blog-card-featured {
+            grid-row: auto;
+          }
+        }
+
+        /* ── SECTION HEADER MOBILE ── */
+        @media (max-width: 640px) {
+          .section-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 1rem !important;
+          }
+          .section {
+            padding: 3rem 1.25rem !important;
+          }
+        }
+      `}</style>
     </>
   )
 }

@@ -4,7 +4,7 @@ import { Post } from '@/lib/types'
 
 export default function BlogCard({ post, featured = false }: { post: Post; featured?: boolean }) {
   return (
-    <Link href={`/blog/${post.slug}`} style={{ textDecoration: 'none', color: 'inherit', gridRow: featured ? 'span 2' : undefined }}>
+    <Link href={`/blog/${post.slug}`} className={featured ? 'blog-card-featured' : ''} style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className="card" style={{ height: '100%', overflow: 'hidden' }}>
         <div style={{
           background: 'var(--cream-dark)',
