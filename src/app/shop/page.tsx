@@ -7,15 +7,28 @@ export const metadata = { title: 'Shop — driversCraft' }
 
 export default async function ShopPage({ searchParams }: { searchParams: { cat?: string } }) {
   const supabase = createClient()
-  const { data: products } = await supabase.from('products').select('*').eq('active', true).order('created_at')
+  const { data: products } = await supabase.from('products').select('*').eq('active', true).order('created_at', { ascending: false })
   return (
     <>
-      <div style={{ background: 'var(--green-deep)', padding: '4rem 5rem 3rem' }}>
-        <div className="section-label" style={{ color: 'var(--accent)' }}>Our Collection</div>
-        <h1 className="font-serif" style={{ fontSize: 'clamp(2.2rem,4vw,3rem)', fontWeight: 900, color: 'var(--cream)', letterSpacing: '-0.02em' }}>
+      <div style={{
+        background: '#0d0d0d',
+        padding: 'calc(var(--nav-height) + 3rem) clamp(1.25rem,5vw,5rem) 3rem',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
+      }}>
+        <div style={{
+          display: 'inline-flex', color: 'var(--accent)',
+          background: 'rgba(200,168,75,0.1)', border: '1px solid rgba(200,168,75,0.2)',
+          padding: '4px 14px', borderRadius: 2,
+          fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase',
+          marginBottom: '0.75rem',
+        }}>Our Collection</div>
+        <h1 className="font-serif" style={{
+          fontSize: 'clamp(2.2rem,4vw,3.5rem)', fontWeight: 900,
+          color: '#f0f0f0', letterSpacing: '-0.03em',
+        }}>
           The <em style={{ fontStyle: 'italic', color: 'var(--accent)' }}>Merch</em>
         </h1>
-        <p style={{ color: 'rgba(240,245,236,0.6)', marginTop: '0.75rem', maxWidth: 480 }}>
+        <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: '0.75rem', maxWidth: 480, fontSize: '0.95rem' }}>
           Premium motorsport-inspired apparel and accessories. Race-day quality, everyday wear.
         </p>
       </div>

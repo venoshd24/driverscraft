@@ -7,7 +7,7 @@ import Footer from '@/components/layout/Footer'
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const supabase = createClient()
   const { data: post } = await supabase.from('posts').select('title,excerpt').eq('slug', params.slug).single()
-  return { title: post ? `${post.title} — driversCraft` : 'Article — driversCraft' }
+  return { title: post ? `${post.title} — driversCraft` : 'driversEdge — driversCraft' }
 }
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {

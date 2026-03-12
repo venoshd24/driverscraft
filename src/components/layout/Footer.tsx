@@ -3,9 +3,10 @@ import Link from 'next/link'
 
 export default function Footer() {
   return (
-    <footer style={{ background: '#0d1f17', padding: '3rem 5rem 2rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '3rem', marginBottom: '3rem' }}>
-        <div>
+    <footer className="site-footer">
+      <div className="footer-grid">
+        {/* Brand */}
+        <div className="footer-brand">
           <div className="font-serif" style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--cream)' }}>
             drivers<span style={{ color: 'var(--accent)' }}>Craft</span>.
           </div>
@@ -13,9 +14,11 @@ export default function Footer() {
             Premium motorsport lifestyle brand. Gear, stories, and community for people who live to drive.
           </p>
         </div>
+
+        {/* Link columns */}
         {[
           { title: 'Shop', links: [{ label: 'All Merch', href: '/shop' }, { label: 'Apparel', href: '/shop?cat=apparel' }, { label: 'Headwear', href: '/shop?cat=headwear' }, { label: 'Accessories', href: '/shop?cat=accessories' }] },
-          { title: 'Stories', links: [{ label: 'Race Analysis', href: '/blog' }, { label: 'Driver Profiles', href: '/blog' }, { label: 'Tech Deep Dives', href: '/blog' }, { label: 'History', href: '/blog' }] },
+          { title: 'driversEdge', links: [{ label: 'Race Analysis', href: '/blog' }, { label: 'Driver Profiles', href: '/blog' }, { label: 'Tech Deep Dives', href: '/blog' }, { label: 'History', href: '/blog' }] },
           { title: 'Account', links: [{ label: 'Log In', href: '/auth/login' }, { label: 'Sign Up', href: '/auth/signup' }, { label: 'My Orders', href: '/account' }, { label: 'Profile', href: '/account' }] },
         ].map(col => (
           <div key={col.title}>
@@ -30,7 +33,9 @@ export default function Footer() {
           </div>
         ))}
       </div>
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
+
+      {/* Bottom bar */}
+      <div className="footer-bottom">
         <p style={{ color: 'rgba(240,245,236,0.3)', fontSize: '0.78rem' }}>© {new Date().getFullYear()} driversCraft. All rights reserved.</p>
         <p style={{ color: 'rgba(240,245,236,0.3)', fontSize: '0.78rem' }}>Designed for those who live to drive.</p>
       </div>

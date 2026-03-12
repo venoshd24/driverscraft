@@ -28,6 +28,7 @@ export interface Post {
   author_name: string
   author_initials: string
   emoji: string
+  image_url: string | null
   featured: boolean
   published_at: string
 }

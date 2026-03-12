@@ -14,13 +14,9 @@ export default function ProductCard({ product }: { product: Product }) {
   }
 
   return (
-    <div className="card" style={{ overflow: 'hidden', cursor: 'default' }}>
-      {/* Image area */}
-      <div style={{
-        height: 260, background: 'var(--cream-dark)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '5rem', position: 'relative', overflow: 'hidden',
-      }}>
+    <div className="product-card">
+      {/* Image area — fixed height, never shrinks */}
+      <div className="product-card-img">
         <div style={{
           position: 'absolute', inset: 0,
           background: 'linear-gradient(135deg,rgba(14,102,64,0.08) 0%,transparent 60%)',
@@ -31,20 +27,22 @@ export default function ProductCard({ product }: { product: Product }) {
             {product.badge}
           </span>
         )}
-        {product.emoji}
+        <span style={{ position: 'relative', zIndex: 1, fontSize: '4rem' }}>{product.emoji}</span>
       </div>
 
-      {/* Info */}
-      <div style={{ padding: '1.2rem' }}>
-        <div className="font-mono" style={{ fontSize: '0.63rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
-          {product.category}
-        </div>
-        <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '0.35rem' }}>{product.name}</div>
-        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.85rem', lineHeight: 1.5 }}>{product.description}</div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div className="font-mono" style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--green-brand)' }}>
-            RM{(product.price / 100).toFixed(2)}
+      {/* Info — flex column so footer always sticks to bottom */}
+      <div className="product-card-body">
+        <div>
+          <div className="font-mono" style={{ fontSize: '0.63rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
+            {product.category}
           </div>
+          <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '0.35rem' }}>{product.name}</div>
+          <div className="product-card-desc">{product.description}</div>
+        </div>
+        <div className="product-card-footer">
+          <span className="product-card-price">
+            {(product.price / 100).toLocaleString('en-MY', { style: 'currency', currency: 'MYR' })}
+          </span>
           <button
             className="btn btn-dark btn-sm"
             onClick={handleAdd}
