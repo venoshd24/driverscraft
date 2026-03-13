@@ -22,6 +22,8 @@ export default function Navbar() {
   const alwaysSolid = !isHome // solid on all pages except landing
 
   useEffect(() => {
+    // Initialize from current scroll position (handles page refresh mid-scroll)
+    setScrolled(window.scrollY > 20)
     function onScroll() { setScrolled(window.scrollY > 20) }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)

@@ -18,7 +18,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#0f1a14' }}>
       <AdminSidebar adminName={profile.first_name || user.email!.split('@')[0]} />
-      <div style={{ flex: 1, marginLeft: 260, padding: '2rem 2.5rem', overflowY: 'auto' }}>
+      {/* Content — offset by sidebar on desktop, topbar on mobile */}
+      <div className="admin-content">
         {children}
       </div>
     </div>

@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { showToast } from '@/components/ui/Toast'
+import ImageUpload from './ImageUpload'
 
 const TAGS = ['Race Analysis', 'Tech Deep Dive', 'History', 'Driver Profile', 'News', 'Opinion']
 const EMOJIS = ['🏁', '🚀', '🌧️', '👤', '🏎️', '⚙️', '🏆', '📊', '🔥', '💡']
@@ -26,6 +27,7 @@ export default function PostForm({ post }: { post?: any }) {
     author_name: post?.author_name || '',
     author_initials: post?.author_initials || '',
     emoji: post?.emoji || '🏁',
+    image_url: post?.image_url || '',
     featured: post?.featured ?? false,
     published: post?.published ?? false,
   })
@@ -60,6 +62,7 @@ export default function PostForm({ post }: { post?: any }) {
       author_name: form.author_name,
       author_initials: form.author_initials,
       emoji: form.emoji,
+      image_url: form.image_url || null,
       featured: form.featured,
       published: form.published,
     }
@@ -79,13 +82,26 @@ export default function PostForm({ post }: { post?: any }) {
     width: '100%', padding: '0.75rem 1rem', borderRadius: 6,
     border: '1px solid rgba(255,255,255,0.12)', background: '#0f1a14',
     color: '#f0f5ec', fontFamily: 'DM Sans, sans-serif', fontSize: '0.92rem',
-    outline: 'none',
+    outline: 'none', boxSizing: 'border-box' as const,
   }
-  const labelStyle = { display: 'block', fontSize: '0.72rem', fontFamily: 'DM Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'rgba(240,245,236,0.5)', marginBottom: '0.5rem' }
+  const labelStyle = {
+    display: 'block', fontSize: '0.72rem', fontFamily: 'DM Mono, monospace',
+    letterSpacing: '0.1em', textTransform: 'uppercase' as const,
+    color: 'rgba(240,245,236,0.5)', marginBottom: '0.5rem',
+  }
 
   return (
     <form onSubmit={handleSubmit}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
+
+        <div style={{ gridColumn: '1 / -1' }}>
+          <ImageUpload
+            bucket="article-images"
+            currentUrl={form.image_url || null}
+            onUpload={url => set('image_url', url)}
+            label="Cover Image"
+          />
+        </div>
 
         <div style={{ gridColumn: '1 / -1' }}>
           <label style={labelStyle}>Title *</label>
@@ -120,9 +136,8 @@ export default function PostForm({ post }: { post?: any }) {
           <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' } as any} value={form.excerpt} onChange={e => set('excerpt', e.target.value)} placeholder="Short summary shown on the blog listing page…" />
         </div>
 
-        {/* Emoji picker */}
         <div style={{ gridColumn: '1 / -1' }}>
-          <label style={labelStyle}>Cover Emoji</label>
+          <label style={labelStyle}>Emoji Icon (fallback)</label>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {EMOJIS.map(e => (
               <button key={e} type="button" onClick={() => set('emoji', e)} style={{
@@ -135,7 +150,6 @@ export default function PostForm({ post }: { post?: any }) {
           </div>
         </div>
 
-        {/* Content editor */}
         <div style={{ gridColumn: '1 / -1' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
             <label style={{ ...labelStyle, marginBottom: 0 }}>Content (HTML) *</label>
@@ -173,12 +187,11 @@ export default function PostForm({ post }: { post?: any }) {
                 placeholder={'<p>Start writing your article...</p>\n<h2>Section Heading</h2>\n<p>More content here.</p>'}
                 required
               />
-              <div style={{ fontSize: '0.7rem', color: 'rgba(240,245,236,0.25)', marginTop: '0.3rem' }}>Write in HTML. Use the buttons above for quick inserts. Click Preview to see how it looks.</div>
+              <div style={{ fontSize: '0.7rem', color: 'rgba(240,245,236,0.25)', marginTop: '0.3rem' }}>Write in HTML. Use the buttons above for quick inserts.</div>
             </>
           )}
         </div>
 
-        {/* Toggles */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button type="button" onClick={() => set('featured', !form.featured)} style={{ width: 44, height: 24, borderRadius: 12, border: 'none', background: form.featured ? '#c8a84b' : 'rgba(255,255,255,0.15)', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
             <span style={{ position: 'absolute', top: 2, left: form.featured ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
@@ -198,7 +211,7 @@ export default function PostForm({ post }: { post?: any }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      <div style={{ display: 'flex', gap: 12, paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.07)', flexWrap: 'wrap' }}>
         <button type="submit" disabled={saving} style={{ background: '#0e6640', color: '#f0f5ec', border: 'none', borderRadius: 6, padding: '0.75rem 2rem', fontWeight: 700, fontSize: '0.88rem', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1, fontFamily: 'DM Sans, sans-serif' }}>
           {saving ? 'Saving…' : isEdit ? 'Update Article' : 'Save Article'}
         </button>

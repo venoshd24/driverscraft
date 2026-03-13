@@ -9,6 +9,7 @@ export interface Product {
   emoji: string
   badge: string | null
   stock: number
+  image_url: string | null
   stripe_price_id: string | null
   active: boolean
   created_at: string

@@ -43,27 +43,26 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: '2.5rem' }}>
+      <div className="admin-stats-grid" style={{ marginBottom: '2.5rem' }}>
         {stats.map(s => (
           <div key={s.label} style={{
             background: '#121d17', border: '1px solid rgba(255,255,255,0.07)',
-            borderRadius: 10, padding: '1.5rem',
-            transition: 'border-color 0.2s',
+            borderRadius: 10, padding: '1.25rem 1.5rem',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-              <span style={{ fontSize: '1.5rem' }}>{s.icon}</span>
-              <span style={{ fontSize: '0.65rem', fontFamily: 'DM Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(240,245,236,0.35)' }}>{s.sub}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '1.4rem' }}>{s.icon}</span>
+              <span style={{ fontSize: '0.62rem', fontFamily: 'DM Mono, monospace', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(240,245,236,0.35)', textAlign: 'right', lineHeight: 1.4 }}>{s.sub}</span>
             </div>
-            <div style={{ fontSize: '2rem', fontWeight: 700, color: '#f0f5ec', fontFamily: 'DM Mono, monospace', marginBottom: '0.3rem' }}>
+            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#f0f5ec', fontFamily: 'DM Mono, monospace', marginBottom: '0.25rem' }}>
               {s.value}
             </div>
-            <div style={{ fontSize: '0.8rem', color: 'rgba(240,245,236,0.5)' }}>{s.label}</div>
+            <div style={{ fontSize: '0.78rem', color: 'rgba(240,245,236,0.5)' }}>{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Quick Actions */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: '2.5rem' }}>
+      <div className="admin-actions-grid" style={{ marginBottom: '2.5rem' }}>
         {[
           { href: '/admin/products/new', icon: '➕', label: 'Add New Product', color: '#0e6640' },
           { href: '/admin/posts/new', icon: '✏️', label: 'Write New Article', color: '#1a4a35' },
@@ -92,7 +91,8 @@ export default async function AdminDashboard() {
           <h2 style={{ color: '#f0f5ec', fontSize: '1rem', fontWeight: 700 }}>Recent Orders</h2>
           <Link href="/admin/orders" style={{ color: '#c8a84b', fontSize: '0.8rem', textDecoration: 'none' }}>View all →</Link>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 420 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
               {['Order ID', 'Items', 'Total', 'Status', 'Date'].map(h => (
@@ -125,6 +125,7 @@ export default async function AdminDashboard() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )

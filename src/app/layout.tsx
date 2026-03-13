@@ -2,7 +2,8 @@
 import type { Metadata } from 'next'
 import '@/styles/globals.css'
 import { CartProvider } from '@/lib/cart-context'
-import Navbar from '@/components/layout/Navbar'
+import NavbarWrapper from '@/components/layout/NavbarWrapper'
+import MainContent from '@/components/layout/MainContent'
 import CartDrawer from '@/components/layout/CartDrawer'
 import Toast from '@/components/ui/Toast'
 import PageTransition from '@/components/ui/PageTransition'
@@ -24,12 +25,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <CartProvider>
           <RouteProgressBar />
-          <Navbar />
-          <main style={{ paddingTop: 'var(--nav-height)' }}>
+          <NavbarWrapper />
+          <MainContent>
             <PageTransition>
               {children}
             </PageTransition>
-          </main>
+          </MainContent>
           <CartDrawer />
           <Toast />
         </CartProvider>
