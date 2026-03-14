@@ -1,4 +1,5 @@
 // src/app/admin/customers/page.tsx
+export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata = { title: 'Customers — Admin' }

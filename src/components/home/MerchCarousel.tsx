@@ -2,6 +2,8 @@
 // src/components/home/MerchCarousel.tsx
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { Product } from '@/lib/types'
 import { useCart } from '@/lib/cart-context'
 import { showToast } from '@/components/ui/Toast'
@@ -45,43 +47,69 @@ export default function MerchCarousel({ products }: { products: Product[] }) {
 
       {/* Carousel row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', maxWidth: 1100, margin: '0 auto', padding: '0 1rem' }}>
-        {/* Prev arrow */}
         <button className="merch-arrow" onClick={prev} aria-label="Previous">←</button>
 
-        {/* 3 cards desktop / 1 card mobile */}
         <div className="merch-cards-grid">
           {visible.map((p) => (
             <div key={p.id} className="merch-card-item"
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 28px rgba(0,0,0,0.12)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '' }}
             >
-              {/* Image area */}
-              <div style={{
-                background: 'var(--cream-dark)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                height: 200, position: 'relative',
-              }}>
-                {p.badge && (
-                  <span className={`badge ${p.badge === 'new' ? 'badge-accent' : 'badge-green'}`}
-                    style={{ position: 'absolute', top: 12, left: 12 }}>{p.badge}</span>
-                )}
-                {p.stock === 0 && (
-                  <span style={{
-                    position: 'absolute', top: 12, right: 12,
-                    background: 'rgba(0,0,0,0.55)', color: '#fff',
-                    fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.08em',
-                    textTransform: 'uppercase', padding: '3px 9px', borderRadius: 2,
-                  }}>SOLD OUT</span>
-                )}
-                <span style={{ fontSize: '4.5rem' }}>{p.emoji}</span>
-              </div>
+              {/* Image area — clickable */}
+              <Link href={`/shop/product/${p.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                <div style={{
+                  background: 'var(--cream-dark)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  height: 220, position: 'relative', overflow: 'hidden',
+                }}>
+                  {p.image_url ? (
+                    <Image
+                      src={p.image_url}
+                      alt={p.name}
+                      fill
+                      style={{ objectFit: 'cover', transition: 'transform 0.35s ease' }}
+                      sizes="(max-width: 640px) 90vw, 33vw"
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.04)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)' }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: '4.5rem' }}>{p.emoji}</span>
+                  )}
+                  {p.badge && (
+                    <span className={`badge ${p.badge === 'new' ? 'badge-accent' : 'badge-green'}`}
+                      style={{ position: 'absolute', top: 12, left: 12, zIndex: 2 }}>{p.badge}</span>
+                  )}
+                  {p.stock === 0 && (
+                    <span style={{
+                      position: 'absolute', top: 12, right: 12, zIndex: 2,
+                      background: 'rgba(0,0,0,0.55)', color: '#fff',
+                      fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.08em',
+                      textTransform: 'uppercase', padding: '3px 9px', borderRadius: 2,
+                    }}>SOLD OUT</span>
+                  )}
+                  {/* Quick view hint */}
+                  <div style={{
+                    position: 'absolute', inset: 0, background: 'rgba(0,0,0,0)',
+                    display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+                    paddingBottom: 12, transition: 'background 0.2s',
+                  }} className="merch-card-overlay">
+                    <span style={{
+                      background: 'rgba(0,0,0,0.7)', color: '#fff', fontSize: '0.72rem',
+                      fontWeight: 600, padding: '5px 14px', borderRadius: 20,
+                      opacity: 0, transition: 'opacity 0.2s',
+                    }} className="merch-card-view-hint">View Details</span>
+                  </div>
+                </div>
+              </Link>
 
               {/* Body */}
               <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flex: 1, gap: '0.4rem' }}>
                 <div className="font-mono" style={{ fontSize: '0.6rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {p.category}
                 </div>
-                <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-dark)', lineHeight: 1.3 }}>{p.name}</div>
+                <Link href={`/shop/product/${p.id}`} style={{ textDecoration: 'none' }}>
+                  <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-dark)', lineHeight: 1.3 }}>{p.name}</div>
+                </Link>
                 <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.5, flex: 1,
                   display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {p.description}
@@ -103,7 +131,6 @@ export default function MerchCarousel({ products }: { products: Product[] }) {
           ))}
         </div>
 
-        {/* Next arrow */}
         <button className="merch-arrow" onClick={next} aria-label="Next">→</button>
       </div>
 

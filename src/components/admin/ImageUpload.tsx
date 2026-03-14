@@ -21,7 +21,7 @@ export default function ImageUpload({ bucket, currentUrl, onUpload, label = 'Mai
 
   async function uploadFile(file: File) {
     if (!file.type.startsWith('image/')) { showToast('⚠️ Please upload an image file'); return }
-    if (file.size > 5 * 1024 * 1024) { showToast('⚠️ Image must be under 5MB'); return }
+    if (file.size > 20 * 1024 * 1024) { showToast('⚠️ Image must be under 20MB'); return }
 
     setUploading(true)
     const sb = createClient()
@@ -119,7 +119,7 @@ export default function ImageUpload({ bucket, currentUrl, onUpload, label = 'Mai
               <div style={{ color: 'rgba(240,245,236,0.6)', fontSize: '0.88rem', marginBottom: '0.25rem' }}>
                 Drop image here or <span style={{ color: '#c8a84b', textDecoration: 'underline' }}>browse</span>
               </div>
-              <div style={{ color: 'rgba(240,245,236,0.3)', fontSize: '0.72rem' }}>JPG, PNG, WebP — max 5MB</div>
+              <div style={{ color: 'rgba(240,245,236,0.3)', fontSize: '0.72rem' }}>JPG, PNG, WebP — max 20MB</div>
             </>
           )}
         </div>

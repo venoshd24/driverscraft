@@ -1,7 +1,7 @@
 'use client'
 // src/app/admin/products/ProductsClient.tsx
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { showToast } from '@/components/ui/Toast'
@@ -9,6 +9,9 @@ import { Product } from '@/lib/types'
 
 export default function ProductsClient({ products: initial }: { products: Product[] }) {
   const [products, setProducts] = useState(initial)
+
+  // Sync when parent fetches fresh data
+  useEffect(() => { setProducts(initial) }, [initial])
 
   async function toggleActive(id: string, current: boolean) {
     const sb = createClient()

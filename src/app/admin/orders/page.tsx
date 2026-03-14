@@ -1,4 +1,5 @@
 // src/app/admin/orders/page.tsx
+export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import OrdersClient from './OrdersClient'
 

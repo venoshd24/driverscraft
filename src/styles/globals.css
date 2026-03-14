@@ -1042,3 +1042,47 @@ html, body { overflow-x: hidden; max-width: 100vw; }
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ══════════════════════════════════════
+   PRODUCT DETAIL PAGE
+══════════════════════════════════════ */
+.product-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .product-detail-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* Merch carousel — hover overlay hint */
+.merch-card-item:hover .merch-card-overlay {
+  background: rgba(0,0,0,0.08) !important;
+}
+.merch-card-item:hover .merch-card-view-hint {
+  opacity: 1 !important;
+}
+
+/* Related product cards hover */
+.related-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.related-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+/* ══════════════════════════════════════
+   ARTICLE BODY STYLES
+══════════════════════════════════════ */
+.article-body p { color: var(--text-mid); line-height: 1.85; margin-bottom: 1.25rem; font-size: 1.02rem; }
+.article-body h2 { font-family: 'Playfair Display', serif; font-size: 1.55rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--text-dark); }
+.article-body blockquote { border-left: 3px solid var(--green-brand); padding: 0.5rem 1.5rem; margin: 1.5rem 0; font-style: italic; color: var(--text-muted); font-size: 1.05rem; }
+.article-body img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5rem 0; display: block; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.article-body a { color: var(--green-brand); text-decoration: underline; }
+.article-body strong { color: var(--text-dark); font-weight: 700; }

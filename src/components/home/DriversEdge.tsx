@@ -5,27 +5,15 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Post } from '@/lib/types'
 
-const SLIDE_PHOTOS = [
-  '/article-1.jpg',
-  '/article-2.jpg',
-  '/article-3.jpg',
-  '/article-4.jpg',
-  '/article-5.jpg',
-  '/article-6.jpg',
-]
-
-const CARD_PHOTOS = ['/article-4.jpg', '/article-5.jpg', '/article-6.jpg']
-
 export default function DriversEdge({ posts }: { posts: Post[] }) {
-  const heroSlides = posts.slice(0, 5)
-  const latestCards = posts.slice(0, 3)
+  const published = posts.filter(p => p.published !== false)
+  const heroSlides = published.slice(0, 5)
+  const latestCards = published.slice(0, 3)
   const total = heroSlides.length
 
-  // current = visible slide index
-  // next    = incoming slide index (null when not transitioning)
   const [current, setCurrent] = useState(0)
   const [incoming, setIncoming] = useState<number | null>(null)
-  const [direction, setDirection] = useState<1 | -1>(1) // 1=fwd, -1=back
+  const [direction, setDirection] = useState<1 | -1>(1)
   const [transitioning, setTransitioning] = useState(false)
   const [paused, setPaused] = useState(false)
   const busyRef = useRef(false)
@@ -35,7 +23,6 @@ export default function DriversEdge({ posts }: { posts: Post[] }) {
     busyRef.current = true
     setDirection(dir)
     setIncoming(nextIdx)
-    // Small tick so browser paints incoming panel offscreen first
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         setTransitioning(true)
@@ -53,7 +40,6 @@ export default function DriversEdge({ posts }: { posts: Post[] }) {
   function next() { go((current + 1) % total, 1); setPaused(true) }
   function goTo(i: number) { if (i !== current) go(i, i > current ? 1 : -1); setPaused(true) }
 
-  // Auto-advance
   useEffect(() => {
     if (paused || total <= 1) return
     const t = setInterval(() => go((current + 1) % total, 1), 3000)
@@ -66,9 +52,8 @@ export default function DriversEdge({ posts }: { posts: Post[] }) {
     return () => clearTimeout(t)
   }, [paused])
 
-  if (!posts.length) return null
+  if (!total) return null
 
-  // Current slide exits in direction, incoming enters from opposite side
   const currentExitX = transitioning ? (direction > 0 ? '-100%' : '100%') : '0%'
   const incomingStartX = direction > 0 ? '100%' : '-100%'
   const incomingEndX = transitioning ? '0%' : incomingStartX
@@ -77,13 +62,14 @@ export default function DriversEdge({ posts }: { posts: Post[] }) {
     <section style={{ background: '#0d0d0d', padding: '5rem 0 4rem' }}>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <div style={{
-          display: 'inline-flex', color: 'var(--accent)',
-          background: 'rgba(200,168,75,0.1)', border: '1px solid rgba(200,168,75,0.2)',
-          padding: '4px 14px', borderRadius: 2,
-          fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase',
-          marginBottom: '0.75rem',
-        }}>Pit Lane</div>
+        <div style={{ width: 'fit-content', margin: '0 auto', marginBottom: '0.75rem' }}>
+          <div style={{
+            display: 'inline-flex', color: 'var(--accent)',
+            background: 'rgba(200,168,75,0.1)', border: '1px solid rgba(200,168,75,0.2)',
+            padding: '4px 14px', borderRadius: 2,
+            fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase',
+          }}>Pit Lane</div>
+        </div>
         <h2 className="font-serif" style={{
           fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900,
           color: '#f0f0f0', letterSpacing: '-0.02em',
@@ -95,8 +81,11 @@ export default function DriversEdge({ posts }: { posts: Post[] }) {
         </p>
       </div>
 
-      {/* ── CAROUSEL ── */}
+      {/* ── CAROUSEL — Most Read ── */}
       <div style={{ position: 'relative' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+          <span style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)' }}>🔥 Most Read</span>
+        </div>
         <div style={{
           position: 'relative',
           width: '100%',
@@ -104,21 +93,16 @@ export default function DriversEdge({ posts }: { posts: Post[] }) {
           overflow: 'hidden',
           background: '#111',
         }}>
-          {/* CURRENT slide — slides out when transitioning */}
           <SlidePanel
             post={heroSlides[current]}
-            photo={SLIDE_PHOTOS[current % SLIDE_PHOTOS.length]}
             slideIndex={current}
             total={total}
             translateX={currentExitX}
             animate={transitioning}
           />
-
-          {/* INCOMING slide — slides in from off-screen */}
           {incoming !== null && (
             <SlidePanel
               post={heroSlides[incoming]}
-              photo={SLIDE_PHOTOS[incoming % SLIDE_PHOTOS.length]}
               slideIndex={incoming}
               total={total}
               translateX={incomingEndX}
@@ -126,8 +110,6 @@ export default function DriversEdge({ posts }: { posts: Post[] }) {
               animate={transitioning}
             />
           )}
-
-          {/* Arrows */}
           {(['←', '→'] as const).map((arrow, idx) => (
             <button key={arrow} onClick={idx === 0 ? prev : next} style={{
               position: 'absolute',
@@ -166,16 +148,26 @@ export default function DriversEdge({ posts }: { posts: Post[] }) {
             marginBottom: '1.25rem',
           }}>Latest</div>
           <div className="de-cards-grid">
-            {latestCards.map((post, i) => (
+            {latestCards.map((post) => (
               <Link key={post.id} href={`/blog/${post.slug}`} style={{ textDecoration: 'none' }}>
                 <div className="de-card">
                   <div className="de-card-img" style={{
-                    backgroundImage: `url(${CARD_PHOTOS[i % CARD_PHOTOS.length]})`,
-                    backgroundSize: 'cover', backgroundPosition: 'center',
+                    backgroundImage: post.image_url ? `url(${post.image_url})` : undefined,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    background: post.image_url ? undefined : '#1a2e22',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}>
+                    {/* Gradient overlay always present */}
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.15) 60%)', zIndex: 1 }} />
+                    {/* Emoji fallback when no image */}
+                    {!post.image_url && (
+                      <span style={{ fontSize: '3.5rem', position: 'relative', zIndex: 2, opacity: 0.6 }}>{post.emoji}</span>
+                    )}
                     <span style={{
-                      position: 'absolute', bottom: 10, left: 12, zIndex: 2,
+                      position: 'absolute', bottom: 10, left: 12, zIndex: 3,
                       background: 'var(--accent)', color: '#1a1a1a',
                       fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.1em',
                       textTransform: 'uppercase', padding: '3px 8px', borderRadius: 2,
@@ -183,8 +175,18 @@ export default function DriversEdge({ posts }: { posts: Post[] }) {
                   </div>
                   <div style={{ padding: '1rem' }}>
                     <div className="font-serif" style={{ fontWeight: 700, fontSize: '0.95rem', color: '#f0f0f0', lineHeight: 1.3, marginBottom: '0.5rem' }}>{post.title}</div>
-                    <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)' }}>
-                      {post.author_name} · {new Date(post.published_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {post.author_name && <span>{post.author_name}</span>}
+                      <span>·</span>
+                      <span>
+                        {post.published_at
+                          ? new Date(post.published_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                          : new Date((post as any).created_at || '').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                        }
+                      </span>
+                      {(post as any).view_count > 0 && (
+                        <span style={{ color: 'rgba(255,255,255,0.3)' }}>· 👁 {(post as any).view_count.toLocaleString()}</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -206,12 +208,10 @@ export default function DriversEdge({ posts }: { posts: Post[] }) {
   )
 }
 
-// Each slide is a self-contained panel that can be positioned offscreen and slid in/out
 function SlidePanel({
-  post, photo, slideIndex, total, translateX, startX, animate,
+  post, slideIndex, total, translateX, startX, animate,
 }: {
   post: Post
-  photo: string
   slideIndex: number
   total: number
   translateX: string
@@ -222,15 +222,27 @@ function SlidePanel({
     <div style={{
       position: 'absolute', inset: 0,
       transform: `translateX(${translateX})`,
-      // If there's a startX and we haven't started animating yet, use it (so it starts offscreen)
       transition: animate ? 'transform 0.48s cubic-bezier(0.77,0,0.18,1)' : 'none',
       willChange: 'transform',
     }}>
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: `url(${photo})`,
-        backgroundSize: 'cover', backgroundPosition: 'center',
-      }} />
+      {/* Background: real image or dark gradient with emoji */}
+      {post.image_url ? (
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: `url(${post.image_url})`,
+          backgroundSize: 'cover', backgroundPosition: 'center',
+        }} />
+      ) : (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(135deg, #0d1f17 0%, #1a3528 50%, #0d1f17 100%)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span style={{ fontSize: '8rem', opacity: 0.15 }}>{post.emoji}</span>
+        </div>
+      )}
+
+      {/* Overlays */}
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(13,13,13,0.92) 0%, rgba(13,13,13,0.35) 55%, rgba(13,13,13,0.2) 100%)' }} />
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(13,13,13,0.5) 0%, transparent 65%)' }} />
 
@@ -268,6 +280,11 @@ function SlidePanel({
           color: 'var(--accent)', fontWeight: 700, fontSize: '0.88rem',
           textDecoration: 'none', width: 'fit-content', marginTop: '0.25rem',
         }}>Read Full Story →</Link>
+        {(post as any).view_count > 0 && (
+          <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.25rem' }}>
+            👁 {(post as any).view_count.toLocaleString()} views
+          </span>
+        )}
       </div>
     </div>
   )

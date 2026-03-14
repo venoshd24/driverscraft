@@ -14,6 +14,12 @@ function slugify(str: string) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
 
+function uniqueSlug(str: string) {
+  const base = slugify(str)
+  const suffix = Date.now().toString(36).slice(-4) // 4-char timestamp suffix e.g. "k3f2"
+  return base ? `${base}-${suffix}` : `article-${suffix}`
+}
+
 export default function PostForm({ post }: { post?: any }) {
   const router = useRouter()
   const isEdit = !!post
@@ -28,17 +34,17 @@ export default function PostForm({ post }: { post?: any }) {
     author_initials: post?.author_initials || '',
     emoji: post?.emoji || '🏁',
     image_url: post?.image_url || '',
-    featured: post?.featured ?? false,
     published: post?.published ?? false,
   })
   const [saving, setSaving] = useState(false)
   const [preview, setPreview] = useState(false)
+  const [insertingImage, setInsertingImage] = useState(false)
 
   function set(key: string, val: any) { setForm(f => ({ ...f, [key]: val })) }
 
   function handleTitleChange(val: string) {
     set('title', val)
-    if (!isEdit) set('slug', slugify(val))
+    if (!isEdit) set('slug', uniqueSlug(val))
   }
 
   function handleAuthorChange(val: string) {
@@ -63,19 +69,24 @@ export default function PostForm({ post }: { post?: any }) {
       author_initials: form.author_initials,
       emoji: form.emoji,
       image_url: form.image_url || null,
-      featured: form.featured,
       published: form.published,
     }
 
+    const updatePayload = isEdit && form.published && !post?.published
+      ? { ...payload, published_at: new Date().toISOString() }
+      : payload
+
     const { error } = isEdit
-      ? await sb.from('posts').update(payload).eq('id', post!.id)
-      : await sb.from('posts').insert({ ...payload, published_at: new Date().toISOString() })
+      ? await sb.from('posts').update(updatePayload).eq('id', post!.id)
+      : await sb.from('posts').insert({
+          ...payload,
+          ...(form.published ? { published_at: new Date().toISOString() } : {}),
+        })
 
     setSaving(false)
     if (error) { showToast('❌ ' + error.message); return }
-    showToast(isEdit ? '✅ Article updated!' : '✅ Article published!')
+    showToast(isEdit ? '✅ Article updated!' : form.published ? '✅ Article published!' : '💾 Draft saved!')
     router.push('/admin/posts')
-    router.refresh()
   }
 
   const inputStyle = {
@@ -160,12 +171,12 @@ export default function PostForm({ post }: { post?: any }) {
 
           {preview ? (
             <div style={{ ...inputStyle, minHeight: 320, overflowY: 'auto', padding: '1.25rem' } as any}>
-              <style>{`.preview-content p{color:rgba(240,245,236,0.75);line-height:1.8;margin-bottom:1rem;font-size:0.95rem}.preview-content h2{color:#f0f5ec;font-family:Playfair Display,serif;font-size:1.35rem;margin:1.5rem 0 0.75rem;font-weight:700}.preview-content blockquote{border-left:3px solid #c8a84b;padding:0.5rem 1.25rem;color:rgba(240,245,236,0.5);font-style:italic}`}</style>
+              <style>{`.preview-content p{color:rgba(240,245,236,0.75);line-height:1.8;margin-bottom:1rem;font-size:0.95rem}.preview-content h2{color:#f0f5ec;font-family:Playfair Display,serif;font-size:1.35rem;margin:1.5rem 0 0.75rem;font-weight:700}.preview-content blockquote{border-left:3px solid #c8a84b;padding:0.5rem 1.25rem;color:rgba(240,245,236,0.5);font-style:italic}.preview-content img{max-width:100%;border-radius:6px;margin:0.75rem 0}`}</style>
               <div className="preview-content" dangerouslySetInnerHTML={{ __html: form.content }} />
             </div>
           ) : (
             <>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                 {[
                   { label: 'H2', insert: '<h2>Heading</h2>' },
                   { label: 'P', insert: '<p>Paragraph text here.</p>' },
@@ -179,6 +190,37 @@ export default function PostForm({ post }: { post?: any }) {
                     {b.label}
                   </button>
                 ))}
+                {/* Inline image upload */}
+                <label style={{
+                  background: 'rgba(200,168,75,0.1)', border: '1px solid rgba(200,168,75,0.25)',
+                  borderRadius: 4, padding: '0.25rem 0.65rem', color: '#c8a84b',
+                  fontSize: '0.72rem', cursor: 'pointer', fontFamily: 'DM Mono, monospace',
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  opacity: insertingImage ? 0.6 : 1,
+                }}>
+                  {insertingImage ? '⏳ Uploading…' : '🖼 Insert Image'}
+                  <input
+                    type="file" accept="image/*" style={{ display: 'none' }}
+                    disabled={insertingImage}
+                    onChange={async e => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      if (file.size > 20 * 1024 * 1024) { showToast('⚠️ Max 20MB'); return }
+                      setInsertingImage(true)
+                      const { createClient: cc } = await import('@/lib/supabase/client')
+                      const sb = cc()
+                      const ext = file.name.split('.').pop()
+                      const path = `inline-${Date.now()}.${ext}`
+                      const { error } = await sb.storage.from('article-images').upload(path, file, { upsert: true })
+                      if (error) { showToast('❌ Upload failed'); setInsertingImage(false); return }
+                      const { data } = sb.storage.from('article-images').getPublicUrl(path)
+                      set('content', form.content + `\n<img src="${data.publicUrl}" alt="Image" style="max-width:100%;border-radius:6px;margin:0.75rem 0" />`)
+                      showToast('✅ Image inserted!')
+                      setInsertingImage(false)
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
               </div>
               <textarea
                 style={{ ...inputStyle, minHeight: 320, resize: 'vertical', fontFamily: 'DM Mono, monospace', fontSize: '0.82rem', lineHeight: 1.6 } as any}
@@ -190,15 +232,6 @@ export default function PostForm({ post }: { post?: any }) {
               <div style={{ fontSize: '0.7rem', color: 'rgba(240,245,236,0.25)', marginTop: '0.3rem' }}>Write in HTML. Use the buttons above for quick inserts.</div>
             </>
           )}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button type="button" onClick={() => set('featured', !form.featured)} style={{ width: 44, height: 24, borderRadius: 12, border: 'none', background: form.featured ? '#c8a84b' : 'rgba(255,255,255,0.15)', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-            <span style={{ position: 'absolute', top: 2, left: form.featured ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
-          </button>
-          <label style={{ ...labelStyle, marginBottom: 0, cursor: 'pointer' }} onClick={() => set('featured', !form.featured)}>
-            {form.featured ? '⭐ Featured post' : 'Not featured'}
-          </label>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

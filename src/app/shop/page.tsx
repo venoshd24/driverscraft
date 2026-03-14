@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import ShopClient from './ShopClient'
 import Footer from '@/components/layout/Footer'
 
+export const revalidate = 60
 export const metadata = { title: 'Shop — driversCraft' }
 
 export default async function ShopPage({ searchParams }: { searchParams: { cat?: string } }) {

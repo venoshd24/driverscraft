@@ -31,7 +31,9 @@ export interface Post {
   emoji: string
   image_url: string | null
   featured: boolean
+  published: boolean
   published_at: string
+  created_at: string
 }
 
 export interface Order {

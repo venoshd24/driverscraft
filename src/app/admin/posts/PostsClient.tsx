@@ -1,13 +1,15 @@
 'use client'
 // src/app/admin/posts/PostsClient.tsx
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { showToast } from '@/components/ui/Toast'
 
-export default function PostsClient({ posts: initial }: { posts: any[] }) {
+export default function PostsClient({ posts: initial, onRefresh }: { posts: any[], onRefresh?: () => void }) {
   const [posts, setPosts] = useState(initial)
+
+  useEffect(() => { setPosts(initial) }, [initial])
 
   async function togglePublished(id: string, current: boolean) {
     const sb = createClient()
@@ -15,14 +17,6 @@ export default function PostsClient({ posts: initial }: { posts: any[] }) {
     if (error) { showToast('❌ Failed to update'); return }
     setPosts(prev => prev.map(p => p.id === id ? { ...p, published: !current } : p))
     showToast(`✅ Post ${!current ? 'published' : 'unpublished'}`)
-  }
-
-  async function toggleFeatured(id: string, current: boolean) {
-    const sb = createClient()
-    const { error } = await sb.from('posts').update({ featured: !current }).eq('id', id)
-    if (error) { showToast('❌ Failed to update'); return }
-    setPosts(prev => prev.map(p => p.id === id ? { ...p, featured: !current } : p))
-    showToast(`✅ ${!current ? 'Set as featured' : 'Removed from featured'}`)
   }
 
   async function deletePost(id: string, title: string) {
@@ -42,17 +36,17 @@ export default function PostsClient({ posts: initial }: { posts: any[] }) {
     <>
       {/* ── DESKTOP TABLE ── */}
       <div className="admin-table-desktop" style={{ background: '#121d17', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-              {['Article', 'Tag', 'Author', 'Featured', 'Published', 'Date', 'Actions'].map(h => (
+              {['Article', 'Tag', 'Author', 'Views', 'Published', 'Date', 'Actions'].map(h => (
                 <th key={h} style={{ padding: '0.85rem 1.25rem', textAlign: 'left', fontSize: '0.68rem', fontFamily: 'DM Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(240,245,236,0.3)', fontWeight: 500 }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {posts.map(post => (
-              <tr key={post.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', opacity: post.published ? 1 : 0.55 }}>
+              <tr key={post.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                 <td style={{ padding: '1rem 1.25rem', maxWidth: 260 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{post.emoji}</span>
@@ -63,11 +57,13 @@ export default function PostsClient({ posts: initial }: { posts: any[] }) {
                   <span style={{ background: 'rgba(14,102,64,0.2)', color: '#2d8a5e', padding: '2px 8px', borderRadius: 2, fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{post.tag}</span>
                 </td>
                 <td style={{ padding: '1rem 1.25rem', fontSize: '0.82rem', color: 'rgba(240,245,236,0.6)' }}>{post.author_name}</td>
-                <td style={{ padding: '1rem 1.25rem' }}>
-                  <button onClick={() => toggleFeatured(post.id, post.featured)} style={{ background: post.featured ? 'rgba(200,168,75,0.15)' : 'transparent', border: `1px solid ${post.featured ? 'rgba(200,168,75,0.3)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 4, padding: '3px 10px', cursor: 'pointer', color: post.featured ? '#c8a84b' : 'rgba(240,245,236,0.3)', fontSize: '0.72rem', fontWeight: 700, fontFamily: 'DM Sans, sans-serif' }}>{post.featured ? '⭐ Featured' : 'Set featured'}</button>
+                <td style={{ padding: '1rem 1.25rem', fontFamily: 'DM Mono, monospace', fontSize: '0.82rem', color: post.view_count > 0 ? '#c8a84b' : 'rgba(240,245,236,0.25)' }}>
+                  {post.view_count > 0 ? `👁 ${post.view_count.toLocaleString()}` : '—'}
                 </td>
                 <td style={{ padding: '1rem 1.25rem' }}>
-                  <button onClick={() => togglePublished(post.id, post.published)} style={{ background: post.published ? 'rgba(14,102,64,0.2)' : 'rgba(255,255,255,0.06)', border: `1px solid ${post.published ? 'rgba(14,102,64,0.4)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 4, padding: '3px 10px', cursor: 'pointer', color: post.published ? '#2d8a5e' : 'rgba(240,245,236,0.4)', fontSize: '0.72rem', fontWeight: 700, fontFamily: 'DM Sans, sans-serif' }}>{post.published ? 'Live' : 'Draft'}</button>
+                  <button onClick={() => togglePublished(post.id, post.published)} style={{ background: post.published ? 'rgba(14,102,64,0.2)' : 'rgba(200,168,75,0.15)', border: `1px solid ${post.published ? 'rgba(14,102,64,0.4)' : 'rgba(200,168,75,0.35)'}`, borderRadius: 4, padding: '3px 10px', cursor: 'pointer', color: post.published ? '#2d8a5e' : '#c8a84b', fontSize: '0.72rem', fontWeight: 700, fontFamily: 'DM Sans, sans-serif' }}>
+                    {post.published ? 'Live' : '● Draft'}
+                  </button>
                 </td>
                 <td style={{ padding: '1rem 1.25rem', fontSize: '0.78rem', color: 'rgba(240,245,236,0.4)' }}>
                   {new Date(post.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -92,7 +88,7 @@ export default function PostsClient({ posts: initial }: { posts: any[] }) {
       {/* ── MOBILE CARDS ── */}
       <div className="admin-cards-mobile">
         {posts.map(post => (
-          <div key={post.id} className="admin-card" style={{ opacity: post.published ? 1 : 0.65 }}>
+          <div key={post.id} className="admin-card">
             <div className="admin-card-row">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
                 <span style={{ fontSize: '1.6rem', flexShrink: 0 }}>{post.emoji}</span>
@@ -104,8 +100,10 @@ export default function PostsClient({ posts: initial }: { posts: any[] }) {
               <span style={{ background: 'rgba(14,102,64,0.2)', color: '#2d8a5e', padding: '2px 8px', borderRadius: 2, fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', flexShrink: 0 }}>{post.tag}</span>
             </div>
             <div className="admin-card-meta">
-              <button onClick={() => toggleFeatured(post.id, post.featured)} className={`admin-badge-btn ${post.featured ? 'featured' : 'inactive'}`}>{post.featured ? '⭐ Featured' : 'Not Featured'}</button>
-              <button onClick={() => togglePublished(post.id, post.published)} className={`admin-badge-btn ${post.published ? 'active' : 'inactive'}`}>{post.published ? 'Live' : 'Draft'}</button>
+              {post.view_count > 0 && <span style={{ color: '#c8a84b', fontSize: '0.75rem' }}>👁 {post.view_count.toLocaleString()} views</span>}
+              <button onClick={() => togglePublished(post.id, post.published)} className={`admin-badge-btn ${post.published ? 'active' : 'featured'}`}>
+                {post.published ? 'Live' : '● Draft'}
+              </button>
             </div>
             <div className="admin-card-actions">
               <Link href={`/blog/${post.slug}`} target="_blank" style={{ textDecoration: 'none' }}>

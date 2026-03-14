@@ -1,21 +1,36 @@
 // src/app/admin/products/page.tsx
-import { createClient } from '@/lib/supabase/server'
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 import ProductsClient from './ProductsClient'
 
-export const metadata = { title: 'Products — Admin' }
+export default function AdminProductsPage() {
+  const [products, setProducts] = useState<any[] | null>(null)
+  const [loading, setLoading] = useState(true)
 
-export default async function AdminProductsPage() {
-  const supabase = createClient()
-  const { data: products } = await supabase
-    .from('products').select('*').order('created_at', { ascending: false })
+  async function fetchProducts() {
+    setLoading(true)
+    const sb = createClient()
+    const { data } = await sb
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false })
+    setProducts(data || [])
+    setLoading(false)
+  }
+
+  useEffect(() => { fetchProducts() }, [])
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
           <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: '2rem', fontWeight: 900, color: '#f0f5ec' }}>Products</h1>
-          <p style={{ color: 'rgba(240,245,236,0.45)', marginTop: '0.3rem', fontSize: '0.9rem' }}>{products?.length ?? 0} products</p>
+          <p style={{ color: 'rgba(240,245,236,0.45)', marginTop: '0.3rem', fontSize: '0.9rem' }}>
+            {loading ? 'Loading…' : `${products?.length ?? 0} products`}
+          </p>
         </div>
         <Link href="/admin/products/new" style={{ textDecoration: 'none' }}>
           <button style={{
@@ -26,7 +41,14 @@ export default async function AdminProductsPage() {
           }}>➕ Add Product</button>
         </Link>
       </div>
-      <ProductsClient products={products || []} />
+
+      {loading ? (
+        <div style={{ padding: '3rem', textAlign: 'center', color: 'rgba(240,245,236,0.3)', background: '#121d17', borderRadius: 10, border: '1px solid rgba(255,255,255,0.07)' }}>
+          Loading products…
+        </div>
+      ) : (
+        <ProductsClient products={products || []} />
+      )}
     </div>
   )
 }

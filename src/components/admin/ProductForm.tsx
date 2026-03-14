@@ -1,7 +1,7 @@
 'use client'
 // src/components/admin/ProductForm.tsx
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { showToast } from '@/components/ui/Toast'
@@ -26,6 +26,16 @@ export default function ProductForm({ product }: { product?: Product }) {
     image_url: product?.image_url || '',
   })
   const [saving, setSaving] = useState(false)
+  const [galleryUploading, setGalleryUploading] = useState(false)
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([])
+
+  useEffect(() => {
+    if (!isEdit || !product?.id) return
+    const sb = createClient()
+    sb.from('product_gallery').select('image_url').eq('product_id', product.id).order('sort_order').then(({ data }) => {
+      if (data) setGalleryUrls(data.map((r: any) => r.image_url))
+    })
+  }, [isEdit, product?.id])
 
   function set(key: string, val: any) { setForm(f => ({ ...f, [key]: val })) }
 
@@ -55,7 +65,6 @@ export default function ProductForm({ product }: { product?: Product }) {
     if (error) { showToast('❌ ' + error.message); return }
     showToast(isEdit ? '✅ Product updated!' : '✅ Product created!')
     router.push('/admin/products')
-    router.refresh()
   }
 
   const inputStyle = {
@@ -148,6 +157,52 @@ export default function ProductForm({ product }: { product?: Product }) {
             {form.active ? 'Active (visible in shop)' : 'Hidden (not visible in shop)'}
           </label>
         </div>
+
+        {/* Extra gallery images */}
+        {isEdit && (
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={labelStyle}>Additional Gallery Photos</label>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+              {galleryUrls.map((url, i) => (
+                <div key={i} style={{ position: 'relative', width: 80, height: 80, borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <button type="button" onClick={() => setGalleryUrls(prev => prev.filter((_, j) => j !== i))}
+                    style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(192,57,43,0.85)', border: 'none', borderRadius: 3, width: 18, height: 18, color: '#fff', fontSize: '0.65rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                </div>
+              ))}
+              <label style={{
+                width: 80, height: 80, borderRadius: 6, border: '2px dashed rgba(255,255,255,0.2)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                cursor: galleryUploading ? 'not-allowed' : 'pointer', gap: 4,
+                background: 'rgba(255,255,255,0.02)', opacity: galleryUploading ? 0.6 : 1,
+              }}>
+                <span style={{ fontSize: '1.4rem' }}>{galleryUploading ? '⏳' : '+'}</span>
+                <span style={{ fontSize: '0.6rem', color: 'rgba(240,245,236,0.4)', textAlign: 'center' }}>Add photo</span>
+                <input type="file" accept="image/*" style={{ display: 'none' }} disabled={galleryUploading}
+                  onChange={async e => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    if (file.size > 20 * 1024 * 1024) { showToast('⚠️ Max 20MB'); return }
+                    setGalleryUploading(true)
+                    const sb = createClient()
+                    const ext = file.name.split('.').pop()
+                    const path = `gallery-${Date.now()}.${ext}`
+                    const { error } = await sb.storage.from('product-images').upload(path, file, { upsert: true })
+                    if (error) { showToast('❌ Upload failed'); setGalleryUploading(false); return }
+                    const { data } = sb.storage.from('product-images').getPublicUrl(path)
+                    // Save to product_gallery table
+                    await sb.from('product_gallery').insert({ product_id: product!.id, image_url: data.publicUrl, sort_order: galleryUrls.length })
+                    setGalleryUrls(prev => [...prev, data.publicUrl])
+                    showToast('✅ Gallery image added!')
+                    setGalleryUploading(false)
+                    e.target.value = ''
+                  }}
+                />
+              </label>
+            </div>
+            <div style={{ fontSize: '0.7rem', color: 'rgba(240,245,236,0.3)', marginTop: '0.4rem' }}>Gallery photos show on the product detail page. The main photo above shows on cards and in the carousel.</div>
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: 12, paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.07)', flexWrap: 'wrap' }}>
