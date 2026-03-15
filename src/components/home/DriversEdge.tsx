@@ -5,10 +5,10 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Post } from '@/lib/types'
 
-export default function DriversEdge({ posts }: { posts: Post[] }) {
+export default function DriversEdge({ posts, latestPosts }: { posts: Post[], latestPosts: Post[] }) {
   const published = posts.filter(p => p.published !== false)
   const heroSlides = published.slice(0, 5)
-  const latestCards = published.slice(0, 3)
+  const latestCards = latestPosts.length > 0 ? latestPosts : published.slice(0, 3)
   const total = heroSlides.length
 
   const [current, setCurrent] = useState(0)

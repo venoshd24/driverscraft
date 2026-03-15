@@ -6,6 +6,7 @@ import MainContent from '@/components/layout/MainContent'
 import CartDrawer from '@/components/layout/CartDrawer'
 import Toast from '@/components/ui/Toast'
 import RouteProgressBar from '@/components/ui/RouteProgressBar'
+import PageTransition from '@/components/ui/PageTransition'
 
 export const metadata: Metadata = {
   title: 'driversCraft — Gear. Stories. Community.',
@@ -25,7 +26,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <RouteProgressBar />
           <NavbarWrapper />
           <MainContent>
-            {children}
+            <PageTransition>
+              {children}
+            </PageTransition>
           </MainContent>
           <CartDrawer />
           <Toast />

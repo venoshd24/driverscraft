@@ -10,6 +10,7 @@ export default async function BlogPage() {
   const { data: posts } = await supabase
     .from('posts').select('*').eq('published', true)
     .order('published_at', { ascending: false })
+    .order('id', { ascending: true })
 
   const allPosts = posts || []
   const totalPages = Math.ceil(allPosts.length / 9)

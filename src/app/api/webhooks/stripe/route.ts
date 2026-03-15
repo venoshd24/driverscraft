@@ -56,9 +56,8 @@ export async function POST(req: NextRequest) {
 
       // Decrement stock
       for (const item of items) {
-        try {
-          await supabase.rpc('decrement_stock', { product_id: item.product_id, qty: item.quantity })
-        } catch (_) {}
+        await supabase.rpc('decrement_stock', { product_id: item.product_id, qty: item.quantity })
+          .catch(() => {}) // non-fatal
       }
 
       console.log(`Order created: ${order.id} for user ${userId}`)

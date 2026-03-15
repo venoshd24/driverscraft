@@ -11,9 +11,10 @@ export const revalidate = 60 // revalidate every 60 seconds
 export default async function HomePage() {
   const supabase = createClient()
 
-  const [{ data: products }, { data: posts }] = await Promise.all([
+  const [{ data: products }, { data: posts }, { data: latestPosts }] = await Promise.all([
     supabase.from('products').select('*').eq('active', true).order('created_at', { ascending: false }).limit(9),
-    supabase.from('posts').select('*').eq('published', true).order('view_count', { ascending: false }).order('published_at', { ascending: false }).limit(5),
+    supabase.from('posts').select('*').eq('published', true).order('view_count', { ascending: false }).order('published_at', { ascending: false }).order('id', { ascending: true }).limit(5),
+    supabase.from('posts').select('*').eq('published', true).order('published_at', { ascending: false }).order('id', { ascending: true }).limit(3),
   ])
 
   return (
@@ -49,7 +50,7 @@ export default async function HomePage() {
       <MerchCarousel products={products || []} />
 
       {/* ── DRIVERS EDGE ── */}
-      <DriversEdge posts={posts || []} />
+      <DriversEdge posts={posts || []} latestPosts={latestPosts || []} />
 
       <NewsletterStrip />
       <Footer />
