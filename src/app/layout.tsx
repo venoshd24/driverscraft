@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 import type { Metadata } from 'next'
 import '@/styles/globals.css'
 import { CartProvider } from '@/lib/cart-context'
@@ -6,7 +5,6 @@ import NavbarWrapper from '@/components/layout/NavbarWrapper'
 import MainContent from '@/components/layout/MainContent'
 import CartDrawer from '@/components/layout/CartDrawer'
 import Toast from '@/components/ui/Toast'
-import PageTransition from '@/components/ui/PageTransition'
 import RouteProgressBar from '@/components/ui/RouteProgressBar'
 
 export const metadata: Metadata = {
@@ -27,9 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <RouteProgressBar />
           <NavbarWrapper />
           <MainContent>
-            <PageTransition>
-              {children}
-            </PageTransition>
+            {children}
           </MainContent>
           <CartDrawer />
           <Toast />

@@ -12,7 +12,7 @@ import type { User } from '@supabase/supabase-js'
 export default function Navbar() {
   const pathname = usePathname()
   const { count } = useCart()
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<User | null | undefined>(undefined)
   const [isAdmin, setIsAdmin] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -133,7 +133,10 @@ export default function Navbar() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.75rem' }}>
           {/* Desktop auth */}
           <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            {user ? (
+            {user === undefined ? (
+              // Loading — render invisible placeholder to prevent layout shift
+              <div style={{ width: 120, height: 32 }} />
+            ) : user ? (
               <>
                 <Link href="/account" style={{ color: 'rgba(240,245,236,0.7)', fontSize: '0.85rem', textDecoration: 'none' }}>
                   {user.user_metadata?.first_name || user.email?.split('@')[0]}
@@ -178,7 +181,7 @@ export default function Navbar() {
             }}>{label}</Link>
           ))}
           <div style={{ display: 'flex', gap: 10, marginTop: '1.25rem' }}>
-            {user ? (
+            {user === undefined ? null : user ? (
               <button className="btn btn-outline-light btn-sm btn-full" onClick={handleLogout}>Log Out</button>
             ) : (
               <>

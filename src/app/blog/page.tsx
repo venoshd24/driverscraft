@@ -48,7 +48,7 @@ export default async function BlogPage() {
         ) : (
           <div className="blog-page-grid">
             {page1.map(post => (
-              <Link key={post.id} href={`/blog/${post.slug}`} style={{ textDecoration: 'none' }}>
+              <Link key={post.id} href={`/blog/${post.slug}`} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column' }}>
                 <article className="blog-page-card">
                   <div className="blog-page-card-img" style={
                     post.image_url ? {
