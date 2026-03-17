@@ -46,11 +46,10 @@ export default function ReadingProgress({ content, title, tag }: {
       )
       observer.observe(hero)
 
-      function updateProgress() {
+      const updateProgress = () => {
         const scrollY = window.scrollY
         const docHeight = document.documentElement.scrollHeight - window.innerHeight
         const p = docHeight > 0 ? Math.min((scrollY / docHeight) * 100, 100) : 0
-        // Re-query refs each time in case portal re-rendered
         const line = lineRef.current
         const pct = pctRef.current
         if (line) line.style.width = `${p}%`

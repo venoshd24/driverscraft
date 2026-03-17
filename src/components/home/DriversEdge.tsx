@@ -151,11 +151,12 @@ export default function DriversEdge({ posts, latestPosts }: { posts: Post[], lat
             {latestCards.map((post) => (
               <Link key={post.id} href={`/blog/${post.slug}`} style={{ textDecoration: 'none' }}>
                 <div className="de-card">
-                  <div className="de-card-img" style={{
-                    backgroundImage: post.image_url ? `url(${post.image_url})` : undefined,
+                  <div className="de-card-img" style={post.image_url ? {
+                    backgroundImage: `url(${post.image_url})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
-                    background: post.image_url ? undefined : '#1a2e22',
+                  } : {
+                    background: '#1a2e22',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -164,7 +165,7 @@ export default function DriversEdge({ posts, latestPosts }: { posts: Post[], lat
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.15) 60%)', zIndex: 1 }} />
                     {/* Emoji fallback when no image */}
                     {!post.image_url && (
-                      <span style={{ fontSize: '3.5rem', position: 'relative', zIndex: 2, opacity: 0.6 }}>{post.emoji}</span>
+                      <span style={{ fontSize: '3.5rem', position: 'relative', zIndex: 2, opacity: 0.4 }}>{post.emoji}</span>
                     )}
                     <span style={{
                       position: 'absolute', bottom: 10, left: 12, zIndex: 3,
