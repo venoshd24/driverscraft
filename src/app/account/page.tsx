@@ -16,17 +16,22 @@ export default async function AccountPage() {
     supabase.from('orders').select('*, order_items(*)').eq('user_id', user.id).order('created_at', { ascending: false }),
   ])
 
+  const name = profile?.first_name || user.email?.split('@')[0] || 'there'
+
   return (
     <>
-      <div style={{ background: 'var(--green-deep)', padding: '3rem 5rem' }}>
-        <h2 className="font-serif" style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--cream)' }}>
-          Welcome back, {profile?.first_name || user.email?.split('@')[0]} 👋
-        </h2>
-        <p style={{ color: 'rgba(240,245,236,0.6)', marginTop: '0.3rem' }}>{user.email}</p>
+      {/* Hero */}
+      <div style={{ background: 'var(--green-deep)', padding: 'calc(var(--nav-height) + 2rem) clamp(1.5rem,5vw,5rem) 2rem' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <p style={{ color: 'rgba(240,245,236,0.5)', fontSize: '0.8rem', fontFamily: 'DM Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.4rem' }}>My Account</p>
+          <h1 className="font-serif" style={{ fontSize: 'clamp(1.6rem,3vw,2.2rem)', fontWeight: 900, color: 'var(--cream)', letterSpacing: '-0.02em' }}>
+            Welcome back, {name} 👋
+          </h1>
+          <p style={{ color: 'rgba(240,245,236,0.5)', marginTop: '0.35rem', fontSize: '0.85rem' }}>{user.email}</p>
+        </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', minHeight: 'calc(100vh - 220px)' }}>
-        <AccountClient profile={profile} orders={orders || []} userEmail={user.email!} />
-      </div>
+
+      <AccountClient profile={profile} orders={orders || []} userEmail={user.email!} />
       <Footer />
     </>
   )

@@ -72,15 +72,17 @@ export default function Navbar() {
         onMouseLeave={() => setHovered(false)}
         style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-          background: (isVisible || alwaysSolid) ? 'rgba(13,31,23,0.96)' : 'transparent',
-          borderBottom: (isVisible || alwaysSolid) ? '1px solid rgba(255,255,255,0.08)' : 'none',
-          backdropFilter: (isVisible || alwaysSolid) ? 'blur(16px)' : 'none',
+          background: (isVisible || alwaysSolid) ? 'rgba(13,31,23,0.96)' : 'rgba(13,31,23,0)',
+          borderBottom: '1px solid',
+          borderBottomColor: (isVisible || alwaysSolid) ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0)',
+          backdropFilter: (isVisible || alwaysSolid) ? 'blur(16px)' : 'blur(0px)',
+          WebkitBackdropFilter: (isVisible || alwaysSolid) ? 'blur(16px)' : 'blur(0px)',
           display: 'grid',
           gridTemplateColumns: '1fr auto 1fr',
           alignItems: 'center',
           padding: '0 1.5rem',
           height: 'var(--nav-height)',
-          transition: 'background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
+          transition: 'background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, backdrop-filter 0.4s ease',
           boxShadow: scrolled ? '0 4px 30px rgba(13,31,23,0.3)' : 'none',
         }}>
 
