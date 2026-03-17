@@ -10,6 +10,8 @@ export interface Product {
   badge: string | null
   stock: number
   image_url: string | null
+  has_sizes: boolean
+  available_sizes: string[]
   stripe_price_id: string | null
   active: boolean
   created_at: string

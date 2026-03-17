@@ -24,6 +24,8 @@ export default function ProductForm({ product }: { product?: Product }) {
     stock: product?.stock?.toString() || '100',
     active: product?.active ?? true,
     image_url: product?.image_url || '',
+    has_sizes: product?.has_sizes ?? false,
+    available_sizes: (product?.available_sizes || []).join(', '),
   })
   const [saving, setSaving] = useState(false)
   const [galleryUploading, setGalleryUploading] = useState(false)
@@ -55,6 +57,10 @@ export default function ProductForm({ product }: { product?: Product }) {
       stock: parseInt(form.stock) || 0,
       active: form.active,
       image_url: form.image_url || null,
+      has_sizes: form.has_sizes,
+      available_sizes: form.has_sizes
+        ? form.available_sizes.split(',').map((s: string) => s.trim().toUpperCase()).filter(Boolean)
+        : [],
     }
 
     const { error } = isEdit
@@ -129,6 +135,32 @@ export default function ProductForm({ product }: { product?: Product }) {
             <option value="new">New</option>
             <option value="sale">Sale</option>
           </select>
+        </div>
+
+        {/* Sizes */}
+        <div style={{ gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: form.has_sizes ? '0.75rem' : 0 }}>
+            <button type="button" onClick={() => set('has_sizes', !form.has_sizes)} style={{ width: 44, height: 24, borderRadius: 12, border: 'none', background: form.has_sizes ? '#0e6640' : 'rgba(255,255,255,0.15)', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+              <span style={{ position: 'absolute', top: 2, left: form.has_sizes ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
+            </button>
+            <label style={{ ...labelStyle, marginBottom: 0, cursor: 'pointer' }} onClick={() => set('has_sizes', !form.has_sizes)}>
+              This product has sizes (e.g. S, M, L, XL)
+            </label>
+          </div>
+          {form.has_sizes && (
+            <div>
+              <label style={labelStyle}>Available Sizes (comma separated)</label>
+              <input style={inputStyle} value={form.available_sizes} onChange={e => set('available_sizes', e.target.value)} placeholder="XS, S, M, L, XL, XXL" />
+              <div style={{ fontSize: '0.7rem', color: 'rgba(240,245,236,0.3)', marginTop: '0.3rem' }}>Leave blank to show default sizes (XS–XXL). Values are auto-uppercased.</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: '0.6rem' }}>
+                {['XS, S, M, L, XL, XXL', 'S, M, L, XL', 'ONE SIZE', 'XS, S, M, L, XL, XXL, 3XL'].map(preset => (
+                  <button key={preset} type="button" onClick={() => set('available_sizes', preset)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '0.2rem 0.6rem', color: 'rgba(240,245,236,0.5)', fontSize: '0.7rem', cursor: 'pointer', fontFamily: 'DM Mono, monospace' }}>
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={{ gridColumn: '1 / -1' }}>
