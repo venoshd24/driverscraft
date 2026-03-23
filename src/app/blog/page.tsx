@@ -1,24 +1,32 @@
 // src/app/blog/page.tsx
+export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Footer from '@/components/layout/Footer'
 
 export const metadata = { title: 'driversEdge — driversCraft' }
 
-export default async function BlogPage() {
+const PER_PAGE = 9
+
+export default async function BlogPage({ searchParams }: { searchParams: { page?: string } }) {
   const supabase = createClient()
+  const currentPage = Math.max(1, parseInt(searchParams.page || '1', 10))
+
   const { data: posts } = await supabase
-    .from('posts').select('*').eq('published', true)
+    .from('posts')
+    .select('*')
+    .eq('published', true)
     .order('published_at', { ascending: false })
+    .order('created_at', { ascending: false })
     .order('id', { ascending: true })
 
   const allPosts = posts || []
-  const totalPages = Math.ceil(allPosts.length / 9)
-  const page1 = allPosts.slice(0, 9)
+  const totalPages = Math.ceil(allPosts.length / PER_PAGE)
+  const pagePosts = allPosts.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE)
 
   return (
     <>
-      {/* Header — solid (navbar is also solid on non-home) */}
+      {/* Header */}
       <div style={{
         background: '#0d0d0d',
         padding: 'calc(var(--nav-height) + 3rem) clamp(1.25rem,5vw,5rem) 3rem',
@@ -44,11 +52,11 @@ export default async function BlogPage() {
 
       {/* Grid */}
       <div style={{ background: '#111', minHeight: '60vh', padding: '3rem clamp(1.25rem,5vw,5rem)' }}>
-        {allPosts.length === 0 ? (
+        {pagePosts.length === 0 ? (
           <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '4rem' }}>No stories published yet.</p>
         ) : (
           <div className="blog-page-grid">
-            {page1.map(post => (
+            {pagePosts.map(post => (
               <Link key={post.id} href={`/blog/${post.slug}`} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column' }}>
                 <article className="blog-page-card">
                   <div className="blog-page-card-img" style={
@@ -85,9 +93,10 @@ export default async function BlogPage() {
                       marginBottom: '0.75rem',
                     }}>{post.excerpt}</p>
                     <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      <span>{post.author_name}</span>
-                      <span>·</span>
-                      <span>{new Date(post.published_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                      {post.author_name && <span>{post.author_name}</span>}
+                      {post.author_name && <span>·</span>}
+                      <span>{new Date(post.published_at || post.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                      {post.view_count > 0 && <><span>·</span><span>👁 {post.view_count}</span></>}
                     </div>
                   </div>
                 </article>
@@ -98,17 +107,43 @@ export default async function BlogPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: '3rem' }}>
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <span key={i} style={{
-                width: 36, height: 36, borderRadius: 4,
-                background: i === 0 ? 'var(--green-brand)' : 'rgba(255,255,255,0.07)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                color: i === 0 ? '#fff' : 'rgba(255,255,255,0.5)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
-              }}>{i + 1}</span>
-            ))}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: '3rem', alignItems: 'center' }}>
+            {/* Prev */}
+            {currentPage > 1 && (
+              <Link href={`/blog?page=${currentPage - 1}`} style={{
+                width: 36, height: 36, borderRadius: 4, textDecoration: 'none',
+                background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+                color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.85rem',
+              }}>←</Link>
+            )}
+
+            {/* Page numbers */}
+            {Array.from({ length: totalPages }).map((_, i) => {
+              const page = i + 1
+              const isActive = page === currentPage
+              return (
+                <Link key={page} href={`/blog?page=${page}`} style={{
+                  width: 36, height: 36, borderRadius: 4, textDecoration: 'none',
+                  background: isActive ? 'var(--green-brand)' : 'rgba(255,255,255,0.07)',
+                  border: `1px solid ${isActive ? 'var(--green-brand)' : 'rgba(255,255,255,0.12)'}`,
+                  color: isActive ? '#fff' : 'rgba(255,255,255,0.5)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.85rem', fontWeight: isActive ? 700 : 400,
+                  transition: 'all 0.15s',
+                }}>{page}</Link>
+              )
+            })}
+
+            {/* Next */}
+            {currentPage < totalPages && (
+              <Link href={`/blog?page=${currentPage + 1}`} style={{
+                width: 36, height: 36, borderRadius: 4, textDecoration: 'none',
+                background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
+                color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.85rem',
+              }}>→</Link>
+            )}
           </div>
         )}
       </div>
