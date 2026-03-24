@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Footer from '@/components/layout/Footer'
 import ViewTracker from './ViewTracker'
 import ReadingProgress from './ReadingProgress'
+import ShareButtons from '@/components/ui/ShareButtons'
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const supabase = createClient()
@@ -64,9 +65,13 @@ export default async function ArticlePage({ params }: { params: { slug: string }
       {/* Body */}
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '3rem 2rem 5rem' }}>
         <div className="article-body" dangerouslySetInnerHTML={{ __html: post.content }} />
-        <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--cream-dark)' }}>
-          <Link href="/blog" className="btn btn-dark">← Back to Stories</Link>
-        </div>
+        <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--cream-dark)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+            <Link href="/blog" className="btn btn-dark">← Back to Stories</Link>
+            <ShareButtons
+              title={post.title}
+              url={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://driverscraft.vercel.app'}/blog/${post.slug}`}
+            />
+          </div>
       </div>
 
       <Footer />

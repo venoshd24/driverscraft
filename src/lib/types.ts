@@ -59,6 +59,9 @@ export interface Profile {
   id: string
   first_name: string | null
   last_name: string | null
-  favourite_driver: string | null
+  car: string | null
+  car_year: string | null
+  location: string | null
+  bio: string | null
   avatar_url: string | null
 }

@@ -36,7 +36,10 @@ export default function AccountClient({ profile, orders, userEmail }: {
   const [expandedOrder, setExpandedOrder] = useState<string | null>(orders[0]?.id || null)
   const [firstName, setFirstName] = useState(profile?.first_name || '')
   const [lastName, setLastName] = useState(profile?.last_name || '')
-  const [favDriver, setFavDriver] = useState(profile?.favourite_driver || '')
+  const [car, setCar] = useState((profile as any)?.car || '')
+  const [carYear, setCarYear] = useState((profile as any)?.car_year || '')
+  const [location, setLocation] = useState((profile as any)?.location || '')
+  const [bio, setBio] = useState((profile as any)?.bio || '')
   const [saving, setSaving] = useState(false)
   const router = useRouter()
 
@@ -45,7 +48,12 @@ export default function AccountClient({ profile, orders, userEmail }: {
     const sb = createClient()
     const { error } = await sb.from('profiles').upsert({
       id: (await sb.auth.getUser()).data.user!.id,
-      first_name: firstName, last_name: lastName, favourite_driver: favDriver,
+      first_name: firstName,
+      last_name: lastName,
+      car: car || null,
+      car_year: carYear || null,
+      location: location || null,
+      bio: bio || null,
     })
     setSaving(false)
     if (error) { showToast('❌ Failed to save'); return }
@@ -237,40 +245,74 @@ export default function AccountClient({ profile, orders, userEmail }: {
 
         {/* ── PROFILE TAB ── */}
         {tab === 'profile' && (
-          <div style={{ maxWidth: 540 }}>
-            <h3 className="font-serif" style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '1.75rem' }}>Profile Settings</h3>
+          <div style={{ maxWidth: 580 }}>
+            <h3 className="font-serif" style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '1.75rem' }}>Your Profile</h3>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem', padding: '1.25rem', background: '#fff', borderRadius: 12, border: '1px solid #e2ead9' }}>
-              <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--green-brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', color: '#fff', fontWeight: 800, flexShrink: 0 }}>
-                {initials}
+            {/* Profile card preview */}
+            <div style={{ background: 'var(--green-deep)', borderRadius: 16, padding: '1.75rem', marginBottom: '1.75rem', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, right: 0, width: 200, height: 200, background: 'rgba(255,255,255,0.03)', borderRadius: '50%', transform: 'translate(40%, -40%)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--green-brand)', border: '3px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', color: '#fff', fontWeight: 800, flexShrink: 0 }}>
+                  {initials}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, color: '#f0f5ec', fontSize: '1.1rem' }}>{firstName || 'Your'} {lastName || 'Name'}</div>
+                  <div style={{ fontSize: '0.78rem', color: 'rgba(240,245,236,0.45)', marginTop: 2 }}>{userEmail}</div>
+                  {location && <div style={{ fontSize: '0.75rem', color: 'rgba(240,245,236,0.4)', marginTop: 2 }}>📍 {location}</div>}
+                </div>
               </div>
-              <div>
-                <div style={{ fontWeight: 700, color: 'var(--text-dark)' }}>{firstName} {lastName}</div>
-                <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{userEmail}</div>
-              </div>
+              {bio && <p style={{ fontSize: '0.85rem', color: 'rgba(240,245,236,0.6)', lineHeight: 1.6, marginBottom: '1rem', fontStyle: 'italic' }}>"{bio}"</p>}
+              {(car || carYear) && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(200,168,75,0.15)', border: '1px solid rgba(200,168,75,0.25)', borderRadius: 8, padding: '0.5rem 1rem' }}>
+                  <span style={{ fontSize: '1.1rem' }}>🚗</span>
+                  <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '0.88rem' }}>
+                    {[carYear, car].filter(Boolean).join(' ')}
+                  </span>
+                </div>
+              )}
             </div>
 
-            <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2ead9', padding: '1.5rem' }}>
+            {/* Edit form */}
+            <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2ead9', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
+                <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">First Name</label>
                   <input className="form-input" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Lewis" />
                 </div>
-                <div className="form-group">
+                <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Last Name</label>
                   <input className="form-input" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Hamilton" />
                 </div>
               </div>
-              <div className="form-group">
+
+              <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Email</label>
                 <input className="form-input" value={userEmail} readOnly style={{ opacity: 0.55, cursor: 'not-allowed' }} />
               </div>
-              <div className="form-group">
-                <label className="form-label">Favourite Driver 🏎️</label>
-                <input className="form-input" value={favDriver} onChange={e => setFavDriver(e.target.value)} placeholder="e.g. Senna, Verstappen, Hamilton…" />
+
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Location</label>
+                <input className="form-input" value={location} onChange={e => setLocation(e.target.value)} placeholder="Shah Alam, Selangor" />
               </div>
-              <button className="btn btn-green" onClick={saveProfile} disabled={saving} style={{ width: '100%', padding: '0.85rem', borderRadius: 8 }}>
-                {saving ? 'Saving…' : 'Save Changes'}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '1rem' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Year</label>
+                  <input className="form-input" value={carYear} onChange={e => setCarYear(e.target.value)} placeholder="1998" maxLength={4} />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Your Car 🚗</label>
+                  <input className="form-input" value={car} onChange={e => setCar(e.target.value)} placeholder="Honda Civic EK9" />
+                </div>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Bio</label>
+                <textarea className="form-input" value={bio} onChange={e => setBio(e.target.value)} placeholder="Weekend warrior. Track days and late nights." rows={3} style={{ resize: 'vertical' as const }} />
+              </div>
+
+              <button className="btn btn-green" onClick={saveProfile} disabled={saving} style={{ padding: '0.85rem', borderRadius: 8, marginTop: '0.25rem' }}>
+                {saving ? 'Saving…' : 'Save Profile'}
               </button>
             </div>
           </div>

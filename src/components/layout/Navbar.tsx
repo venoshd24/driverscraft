@@ -61,6 +61,7 @@ export default function Navbar() {
     { href: '/', label: 'Home' },
     { href: '/shop', label: 'Shop' },
     { href: '/blog', label: 'driversEdge' },
+    { href: '/kickback', label: 'Kickback' },
     { href: '/about', label: 'About Us' },
     ...(isAdmin ? [{ href: '/admin', label: '⚙ Admin', accent: true }] : []),
   ]

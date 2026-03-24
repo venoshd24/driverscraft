@@ -23,6 +23,7 @@ export default function Footer() {
               { label: 'Home', href: '/' },
               { label: 'Merch', href: '/shop' },
               { label: 'Articles', href: '/blog' },
+              { label: 'Kickback', href: '/kickback' },
               { label: 'About Us', href: '/about' },
             ].map(l => (
               <li key={l.label} style={{ marginBottom: '0.6rem' }}>
