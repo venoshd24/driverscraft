@@ -16,16 +16,25 @@ export default function AdminMeetsPage() {
     const { data: meetsData } = await sb
       .from('car_meets').select('*').order('date', { ascending: false })
 
-    // Load RSVPs with profile info for each meet
+    // Fetch RSVPs without join
     const { data: rsvpData } = await sb
       .from('meet_rsvps')
-      .select('meet_id, user_id, created_at, profiles(first_name, last_name)')
+      .select('meet_id, user_id, created_at')
 
-    // Group RSVPs by meet
+    // Get unique user_ids and fetch their profiles separately
+    const userIds = [...new Set((rsvpData || []).map((r: any) => r.user_id))]
+    const { data: profilesData } = userIds.length > 0
+      ? await sb.from('profiles').select('id, first_name, last_name').in('id', userIds)
+      : { data: [] }
+
+    const profileMap: Record<string, any> = {}
+    for (const p of profilesData || []) profileMap[p.id] = p
+
+    // Group RSVPs by meet with profile info
     const grouped: Record<string, any[]> = {}
     for (const r of rsvpData || []) {
       if (!grouped[r.meet_id]) grouped[r.meet_id] = []
-      grouped[r.meet_id].push(r)
+      grouped[r.meet_id].push({ ...r, profile: profileMap[r.user_id] || null })
     }
 
     setMeets(meetsData || [])
@@ -130,7 +139,7 @@ export default function AdminMeetsPage() {
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                           {meetRsvps.map((r: any) => {
-                            const p = r.profiles
+                            const p = r.profile
                             const name = p ? `${p.first_name || ''} ${p.last_name || ''}`.trim() || 'Anonymous' : 'Anonymous'
                             const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '?'
                             return (
