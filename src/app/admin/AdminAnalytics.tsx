@@ -24,7 +24,7 @@ export default function AdminAnalytics({ dailyRevenue, topProducts }: {
   const showLabel = (i: number) => i % 5 === 0 || i === dailyRevenue.length - 1
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.25rem', marginBottom: '2.5rem' }}>
+    <div className="admin-analytics-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.25rem', marginBottom: '2.5rem' }}>
 
       {/* Revenue chart */}
       <div style={{ background: '#121d17', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, padding: '1.5rem' }}>

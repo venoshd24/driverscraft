@@ -22,7 +22,7 @@ export default function AdminMeetsPage() {
       .select('meet_id, user_id, created_at')
 
     // Get unique user_ids and fetch their profiles separately
-    const userIds = [...new Set((rsvpData || []).map((r: any) => r.user_id))]
+    const userIds = Array.from(new Set((rsvpData || []).map((r: any) => r.user_id)))
     const { data: profilesData } = userIds.length > 0
       ? await sb.from('profiles').select('id, first_name, last_name').in('id', userIds)
       : { data: [] }
