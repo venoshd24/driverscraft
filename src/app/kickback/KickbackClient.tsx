@@ -8,13 +8,16 @@ import { showToast } from '@/components/ui/Toast'
 import { useRouter } from 'next/navigation'
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  // Parse YYYY-MM-DD directly to avoid UTC offset shifting the date
+  const [year, month, day] = d.slice(0, 10).split('-').map(Number)
+  return new Date(year, month - 1, day).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 function daysUntil(d: string) {
-  const now = new Date(); now.setHours(0,0,0,0)
-  const diff = Math.ceil((new Date(d).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-  if (diff === 0) return 'Today!'
+  const todayStr = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD local
+  const meetStr = d.slice(0, 10)
+  if (meetStr === todayStr) return 'Today!'
+  const diff = Math.ceil((new Date(meetStr).getTime() - new Date(todayStr).getTime()) / (1000 * 60 * 60 * 24))
   if (diff === 1) return 'Tomorrow'
   return `In ${diff} days`
 }

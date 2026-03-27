@@ -33,17 +33,38 @@ export default function Navbar() {
 
   useEffect(() => {
     const sb = createClient()
-    async function loadUser(uid: string) {
-      const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', uid).single()
-      setIsAdmin(profile?.is_admin ?? false)
+
+    async function checkAdmin(uid: string) {
+      // Primary: query profiles directly (RLS now allows users to read own row)
+      try {
+        const { data: profile } = await sb
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', uid)
+          .single()
+        if (profile !== null) {
+          setIsAdmin(profile?.is_admin === true)
+          return
+        }
+      } catch {}
+
+      // Fallback: use the API route
+      try {
+        const res = await fetch('/api/admin/check')
+        if (res.ok) {
+          const { isAdmin } = await res.json()
+          setIsAdmin(isAdmin)
+        }
+      } catch {}
     }
+
     sb.auth.getUser().then(({ data }) => {
       setUser(data.user)
-      if (data.user) loadUser(data.user.id)
+      if (data.user) checkAdmin(data.user.id)
     })
     const { data: { subscription } } = sb.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null)
-      if (session?.user) loadUser(session.user.id)
+      if (session?.user) checkAdmin(session.user.id)
       else setIsAdmin(false)
     })
     return () => subscription.unsubscribe()

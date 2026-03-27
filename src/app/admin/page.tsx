@@ -1,17 +1,21 @@
 // src/app/admin/page.tsx
 export const dynamic = 'force-dynamic'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import AdminAnalytics from './AdminAnalytics'
 
 export default async function AdminDashboard() {
   const supabase = createClient()
+  const serviceSupabase = createServiceClient()
+
+  // Fetch all auth users directly — bypasses RLS entirely, works even without profiles rows
+  const { data: { users: allAuthUsers } } = await serviceSupabase.auth.admin.listUsers({ perPage: 1000 })
+  const totalCustomers = allAuthUsers?.length ?? 0
 
   const [
     { count: totalOrders },
     { count: totalProducts },
     { count: totalPosts },
-    { count: totalCustomers },
     { count: totalSubscribers },
     { count: totalRsvps },
     { data: recentOrders },
@@ -22,7 +26,6 @@ export default async function AdminDashboard() {
     supabase.from('orders').select('*', { count: 'exact', head: true }),
     supabase.from('products').select('*', { count: 'exact', head: true }).eq('active', true),
     supabase.from('posts').select('*', { count: 'exact', head: true }).eq('published', true),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('newsletter_subscribers').select('*', { count: 'exact', head: true }).eq('active', true),
     supabase.from('meet_rsvps').select('*', { count: 'exact', head: true }),
     supabase.from('orders').select('*, order_items(*)').order('created_at', { ascending: false }).limit(5),

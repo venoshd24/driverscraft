@@ -1,13 +1,14 @@
 // src/app/admin/customers/page.tsx
 export const dynamic = 'force-dynamic'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 export const metadata = { title: 'Customers — Admin' }
 
 export default async function AdminCustomersPage() {
   const supabase = createClient()
+  const serviceSupabase = createServiceClient()
 
-  const { data: profiles } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
+  const { data: profiles } = await serviceSupabase.from('profiles').select('*').order('created_at', { ascending: false })
   const { data: orderStats } = await supabase.from('orders').select('user_id, total, status')
 
   const statsMap = (orderStats || []).reduce((acc: any, o) => {

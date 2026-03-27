@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import '@/styles/globals.css'
 import { CartProvider } from '@/lib/cart-context'
 import NavbarWrapper from '@/components/layout/NavbarWrapper'
@@ -8,10 +8,21 @@ import Toast from '@/components/ui/Toast'
 import RouteProgressBar from '@/components/ui/RouteProgressBar'
 import PageTransition from '@/components/ui/PageTransition'
 
+export const viewport: Viewport = {
+  themeColor: '#0d1f17',
+}
+
 export const metadata: Metadata = {
   title: 'driversCraft — Gear. Stories. Community.',
   description: 'Premium motorsport lifestyle brand. Merch, race analysis, and a community that lives to drive.',
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
+      { url: '/favicon.ico', sizes: '16x16', type: 'image/x-icon' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -30,12 +41,16 @@ export const metadata: Metadata = {
     description: 'Premium motorsport lifestyle brand.',
     images: ['/hero-bg.jpg'],
   },
-  themeColor: '#0d1f17',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      </head>
       <body>
         <CartProvider>
           <RouteProgressBar />
