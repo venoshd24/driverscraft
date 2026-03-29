@@ -13,23 +13,31 @@ export default async function HomePage() {
   const supabase = createClient()
 
   const now = new Date()
-  const todayStr = now.toLocaleDateString('en-CA') // YYYY-MM-DD in local time
+
+  // Malaysia timezone (GMT+8) date — used for filtering upcoming meets and countdown
+  const mytDateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' })
 
   const [{ data: products }, { data: posts }, { data: latestPosts }, { data: meets }] = await Promise.all([
     supabase.from('products').select('*').eq('active', true).order('created_at', { ascending: false }).limit(9),
     supabase.from('posts').select('*').eq('published', true).order('view_count', { ascending: false }).order('published_at', { ascending: false }).order('id', { ascending: true }).limit(5),
     supabase.from('posts').select('*').eq('published', true).order('created_at', { ascending: false }).limit(3),
-    supabase.from('car_meets').select('*').gte('date', todayStr).order('date', { ascending: true }).limit(1),
+    supabase.from('car_meets').select('*').gte('date', mytDateStr).order('date', { ascending: true }).limit(1),
   ])
 
   const nextMeet = meets?.[0] || null
 
+  // Always compute countdown in Malaysia time (GMT+8), regardless of server/visitor timezone
+  function getMYTDateStr() {
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' }) // YYYY-MM-DD
+  }
+
   function daysUntil(d: string) {
     const meetStr = d.slice(0, 10)
-    if (meetStr === todayStr) return 'Today!'
-    const todayDate = new Date(todayStr)
-    const meetDate = new Date(meetStr)
-    const diff = Math.ceil((meetDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24))
+    const todayMYT = getMYTDateStr()
+    if (meetStr === todayMYT) return 'Today!'
+    const diff = Math.ceil(
+      (new Date(meetStr).getTime() - new Date(todayMYT).getTime()) / (1000 * 60 * 60 * 24)
+    )
     if (diff === 1) return 'Tomorrow'
     return `In ${diff} days`
   }

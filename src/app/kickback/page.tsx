@@ -19,19 +19,19 @@ export default async function KickbackPage() {
       : Promise.resolve({ data: [] }),
   ])
 
-  const now = new Date()
-  now.setHours(0, 0, 0, 0)
+  // Compare date strings directly (YYYY-MM-DD) to avoid UTC offset issues
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' }) // YYYY-MM-DD in MYT
 
   const allMeets = meets || []
   const rsvpedIds = new Set((userRsvps || []).map((r: any) => r.meet_id))
 
   const upcoming = allMeets
-    .filter(m => new Date(m.date) >= now)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .filter(m => m.date.slice(0, 10) >= todayStr)
+    .sort((a, b) => a.date.localeCompare(b.date))
 
   const past = allMeets
-    .filter(m => new Date(m.date) < now)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .filter(m => m.date.slice(0, 10) < todayStr)
+    .sort((a, b) => b.date.localeCompare(a.date))
 
   return (
     <>

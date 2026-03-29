@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { showToast } from '@/components/ui/Toast'
 import { useRouter } from 'next/navigation'
+import Guestbook from './Guestbook'
 
 function formatDate(d: string) {
   // Parse YYYY-MM-DD directly to avoid UTC offset shifting the date
@@ -14,10 +15,10 @@ function formatDate(d: string) {
 }
 
 function daysUntil(d: string) {
-  const todayStr = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD local
   const meetStr = d.slice(0, 10)
-  if (meetStr === todayStr) return 'Today!'
-  const diff = Math.ceil((new Date(meetStr).getTime() - new Date(todayStr).getTime()) / (1000 * 60 * 60 * 24))
+  const todayMYT = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' })
+  if (meetStr === todayMYT) return 'Today!'
+  const diff = Math.ceil((new Date(meetStr).getTime() - new Date(todayMYT).getTime()) / (1000 * 60 * 60 * 24))
   if (diff === 1) return 'Tomorrow'
   return `In ${diff} days`
 }
@@ -160,6 +161,14 @@ function HeroMeet({ meet, userId, isRsvped }: { meet: any; userId: string | null
           </a>
         )}
       </div>
+
+      {/* Guestbook */}
+      <Guestbook
+        meetId={meet.id}
+        meetTitle={meet.title}
+        userId={userId}
+        isRsvped={rsvped}
+      />
     </div>
   )
 }
