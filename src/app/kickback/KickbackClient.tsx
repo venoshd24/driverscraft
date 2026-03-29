@@ -165,7 +165,7 @@ function HeroMeet({ meet, userId, isRsvped }: { meet: any; userId: string | null
       {/* Guestbook */}
       <Guestbook
         meetId={meet.id}
-        meetTitle={meet.title}
+        
         userId={userId}
         isRsvped={rsvped}
       />

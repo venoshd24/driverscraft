@@ -1,6 +1,5 @@
 -- ============================================================
--- guestbook-migration.sql
--- Meet comments (guestbook) with optional image upload
+-- guestbook-migration.sql (idempotent — safe to re-run)
 -- ============================================================
 
 -- 1. meet_comments table
@@ -15,35 +14,36 @@ create table if not exists public.meet_comments (
 
 alter table public.meet_comments enable row level security;
 
--- Anyone can read comments
-create policy "Anyone can read comments"
-  on public.meet_comments for select
-  using (true);
+-- Policies (drop first so re-running never errors)
+drop policy if exists "Anyone can read comments"              on public.meet_comments;
+drop policy if exists "Users can post comments"               on public.meet_comments;
+drop policy if exists "Users can delete own comments"         on public.meet_comments;
+drop policy if exists "Admins can delete any comment"         on public.meet_comments;
 
--- Authenticated users can insert their own comments
+create policy "Anyone can read comments"
+  on public.meet_comments for select using (true);
+
 create policy "Users can post comments"
   on public.meet_comments for insert
   with check (auth.uid() = user_id);
 
--- Users can delete their own comments
 create policy "Users can delete own comments"
   on public.meet_comments for delete
   using (auth.uid() = user_id);
 
--- Admins can delete any comment
 create policy "Admins can delete any comment"
   on public.meet_comments for delete
   using (public.is_admin());
 
--- 2. Storage bucket for comment images
--- Run this in Supabase Dashboard → Storage → New bucket
--- Name: meet-comments, Public: true
--- OR run via SQL:
+-- 2. Storage bucket
 insert into storage.buckets (id, name, public)
 values ('meet-comments', 'meet-comments', true)
 on conflict (id) do nothing;
 
--- Storage policies
+drop policy if exists "Anyone can view comment images"                  on storage.objects;
+drop policy if exists "Authenticated users can upload comment images"   on storage.objects;
+drop policy if exists "Users can delete own comment images"             on storage.objects;
+
 create policy "Anyone can view comment images"
   on storage.objects for select
   using (bucket_id = 'meet-comments');
@@ -56,5 +56,6 @@ create policy "Users can delete own comment images"
   on storage.objects for delete
   using (bucket_id = 'meet-comments' and auth.uid()::text = (storage.foldername(name))[1]);
 
--- 3. Index for fast lookup by meet
-create index if not exists meet_comments_meet_id_idx on public.meet_comments(meet_id, created_at desc);
+-- 3. Index
+create index if not exists meet_comments_meet_id_idx
+  on public.meet_comments(meet_id, created_at desc);
