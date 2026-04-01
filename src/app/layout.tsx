@@ -16,13 +16,6 @@ export const metadata: Metadata = {
   title: 'driversCraft — Gear. Stories. Community.',
   description: 'Premium motorsport lifestyle brand. Merch, race analysis, and a community that lives to drive.',
   manifest: '/manifest.json',
-  icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
-      { url: '/favicon.ico', sizes: '16x16', type: 'image/x-icon' },
-    ],
-    apple: '/apple-touch-icon.png',
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',

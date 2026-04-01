@@ -151,19 +151,6 @@ export default function Guestbook({
 
   return (
     <>
-      <style>{`
-        @keyframes gbIn { from { opacity:0; transform:translateY(10px) scale(0.98) } to { opacity:1; transform:none } }
-        .gb-card  { animation: gbIn 0.3s cubic-bezier(0.16,1,0.3,1) both }
-        .gb-panel { animation: gbIn 0.25s cubic-bezier(0.16,1,0.3,1) both }
-        .gb-del   { opacity:0; transition:opacity 0.15s }
-        .gb-card:hover .gb-del { opacity:1 }
-        .gb-photo:hover { background:var(--cream-dark) !important }
-        @media(max-width:640px){
-          .gb-del { opacity:0.5 !important }
-          .gb-row { flex-direction:column !important }
-          .gb-row > .gb-submit { width:100% !important }
-        }
-      `}</style>
 
       {/* ── Toggle button ── */}
       <button
@@ -217,7 +204,7 @@ export default function Guestbook({
                   <button onClick={removeImage} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: 22, height: 22, cursor: 'pointer', fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                 </div>
               )}
-              <div className="gb-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 1rem', borderTop: '1px solid #f0f0f0', gap: '0.6rem' }}>
+              <div className="gb-compose-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 1rem', borderTop: '1px solid #f0f0f0', gap: '0.6rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                   <button className="gb-photo" onClick={() => fileRef.current?.click()} style={{ background: '#f5f5f5', border: 'none', borderRadius: 7, padding: '0.35rem 0.8rem', cursor: 'pointer', fontSize: '0.78rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'DM Sans, sans-serif' }}>
                     📷 Photo
